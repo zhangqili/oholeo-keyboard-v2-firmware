@@ -9,6 +9,8 @@
 #include "usbd_user.h"
 #include "analog.h"
 #include "qmk_midi.h"
+#include "hpm_gpio_drv.h"
+#include "hpm_gpiom_drv.h"
 //#include "ws2812.h"
 
 const Keycode g_default_keymap[LAYER_NUM][TOTAL_KEY_NUM] = {
@@ -58,14 +60,25 @@ const RGBLocation g_rgb_locations[RGB_NUM]={{0.625, 4},{1.875, 4},{3.125, 4},{6.
 
 volatile uint8_t low_latency_mode = 0;
 
-#define L(row,col) ((row)*16+(col))
+#define LO(row,col) ((row)*8+((col)-1))
+#define M1  6
+#define M2  5
+#define M3  4
+#define M4  3
+#define M5  2
+#define M6  1
+#define M7  0
+#define M8  7
+#define M9  8
+#define M10 9
 const uint16_t g_analog_map[ADVANCED_KEY_NUM] =
 {
-    L(0,15),L(0,14),L(0,13),L(0,12),L(2,12),L(2,11),L(2,5), L(3,15),L(3,11),L(3,10),L(1,15),L(1,14),L(1,13),L(1,12), 
-    L(0,8), L(0,9), L(0,10),L(0,11),L(2,10),L(2,4), L(2,3), L(3,14),L(3,8), L(3,9), L(1,8), L(1,9), L(1,10),L(1,11), 
-    L(0,3), L(0,2), L(0,1), L(0,0), L(2,9), L(2,6), L(2,2), L(3,13),L(3,7), L(1,3), L(1,2), L(1,1),         L(1,0), 
-    L(0,4), L(0,5), L(0,6), L(0,7), L(2,8), L(2,7), L(2,1), L(3,12),L(3,6), L(3,5), L(1,4), L(1,5), L(1,6), L(1,7),     
-    L(2,13),L(2,14),L(2,15),                L(2,0),                         L(3,0), L(3,1), L(3,2), L(3,3), L(3,4), 
+    LO(M1,7),   LO(M1,5),   LO(M2,6),   LO(M3,7),   LO(M3,6),   LO(M4,6),   LO(M5,7),   LO(M5,6),   LO(M6,6),   LO(M7,7),   LO(M7,6),   LO(M8,6),   LO(M9,7),   LO(M10,7),  LO(M9,6),   LO(M10,6),
+    LO(M1,6),   LO(M2,7),   LO(M2,5),   LO(M3,5),   LO(M4,7),   LO(M4,5),   LO(M5,5),   LO(M6,7),   LO(M6,5),   LO(M7,5),   LO(M8,7),   LO(M8,5),   LO(M9,5),   LO(M10,5),
+    LO(M1,3),   LO(M2,4),   LO(M2,1),   LO(M3,2),   LO(M4,3),   LO(M4,1),   LO(M5,1),   LO(M6,3),   LO(M7,4),   LO(M8,4),   LO(M8,1),   LO(M9,4),               LO(M10,3),
+    LO(M1,2),   LO(M2,3),   LO(M3,4),   LO(M3,3),   LO(M4,2),   LO(M5,2),   LO(M6,4),   LO(M6,2),   LO(M7,3),   LO(M7,1),   LO(M8,2),   LO(M9,3),   LO(M9,1),   LO(M10,1),
+    LO(M1,4),   LO(M1,1),   LO(M2,2),                           LO(M5,4),                                       LO(M7,2),   LO(M8,3),   LO(M9,2),   LO(M10,4),  LO(M10,2),
+    LO(M4,4),   LO(M5,3),   LO(M6,1),
 };
 
 static const float table[8192] = {
@@ -945,21 +958,10 @@ void keyboard_reboot()
 #define SEL_MASK  (A_Pin | B_Pin | C_Pin | D_Pin)
 void analog_channel_select(uint8_t x)
 {
-#if 0
     //x=BCD_TO_GRAY(x);
-    uint32_t set_mask = 0;
-
-    if (x & 0x01) set_mask |= A_Pin;  // A
-    if (x & 0x02) set_mask |= B_Pin;  // B
-    if (x & 0x04) set_mask |= C_Pin;  // C
-    if (x & 0x08) set_mask |= D_Pin;  // D
-
-    uint32_t rst_mask = SEL_MASK & ~set_mask;
-
-    LL_GPIO_SetOutputPin(INHIBIT_GPIO_Port, INHIBIT_Pin);
-    A_GPIO_Port->BSRR = (set_mask) | (rst_mask << 16);
-    LL_GPIO_ResetOutputPin(INHIBIT_GPIO_Port, INHIBIT_Pin);
-#endif
+    gpio_write_pin(HPM_FGPIO, GPIO_DO_GPIOY, 0, x & 0x01);
+    gpio_write_pin(HPM_FGPIO, GPIO_DO_GPIOY, 1, x & 0x02);
+    gpio_write_pin(HPM_FGPIO, GPIO_DO_GPIOY, 2, x & 0x04);
 }
 
 void keyboard_jump_to_bootloader(void)

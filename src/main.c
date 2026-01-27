@@ -14,6 +14,7 @@
 #include "usbd_user.h"
 #include "usb_config.h"
 #include "adc.h"
+#include "analog.h"
 
 
 int main(void)
@@ -21,13 +22,11 @@ int main(void)
     board_init();
     gpiom_set_pin_controller(HPM_GPIOM, GPIOM_ASSIGN_GPIOY, 0, gpiom_core0_fast);
     gpio_set_pin_output(HPM_FGPIO, GPIO_OE_GPIOY, 0);
-    gpio_write_pin(HPM_FGPIO, GPIO_DO_GPIOY, 0, 0);
     gpiom_set_pin_controller(HPM_GPIOM, GPIOM_ASSIGN_GPIOY, 1, gpiom_core0_fast);
     gpio_set_pin_output(HPM_FGPIO, GPIO_OE_GPIOY, 1);
-    gpio_write_pin(HPM_FGPIO, GPIO_DO_GPIOY, 1, 1);
     gpiom_set_pin_controller(HPM_GPIOM, GPIOM_ASSIGN_GPIOY, 2, gpiom_core0_fast);
-    gpio_set_pin_input(HPM_FGPIO, GPIO_OE_GPIOY, 2);
-    gpio_write_pin(HPM_FGPIO, GPIO_DO_GPIOY, 2, 1);
+    gpio_set_pin_output(HPM_FGPIO, GPIO_OE_GPIOY, 2);
+    analog_channel_select(0);
     printf("hello world\n");
 
     /* ADC pin initialization */
@@ -38,6 +37,7 @@ int main(void)
     board_init_adc_clock(HPM_ADC1, true);
     
     adc_init();
+    gptmr_init();
 
     board_init_usb((USB_Type *)CONFIG_HPM_USBD_BASE);
     intc_set_irq_priority(CONFIG_HPM_USBD_IRQn, 2);

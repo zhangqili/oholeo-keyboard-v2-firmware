@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include "board.h"
+#include "analog.h"
 #include "hpm_gpio_drv.h"
 #include "hpm_gpiom_drv.h"
 #include "hpm_debug_console.h"
@@ -102,7 +103,7 @@ hpm_stat_t process_seq_data(uint32_t *buff, int32_t start_pos, uint32_t len)
     
     printf("%02d\t",  current_cycle_bit);
     for (uint32_t i = start_pos; i < start_pos + len; i++) {
-        printf("%04d\t", dma_data[i].result>>2);
+        printf("%04d\t", dma_data[i].result);
 
         //if (dma_data[i].cycle_bit != current_cycle_bit) {
         //    printf("Error: Cycle bit is not expected value[%d]!\n", current_cycle_bit);
@@ -226,7 +227,7 @@ hpm_stat_t init_common_config(void)
         /* adc16 initialization */
         if (adc16_init(HPM_ADC0, &cfg) == status_success) {
             /* enable irq */
-            intc_m_enable_irq_with_priority(IRQn_ADC0, 1);
+            //intc_m_enable_irq_with_priority(IRQn_ADC0, 1);
             //return status_success;
         } else {
             printf("%s initialization failed!\n", "ADC0");
@@ -248,7 +249,7 @@ hpm_stat_t init_common_config(void)
         /* adc16 initialization */
         if (adc16_init(HPM_ADC1, &cfg) == status_success) {
             /* enable irq */
-            intc_m_enable_irq_with_priority(IRQn_ADC1, 1);
+            //intc_m_enable_irq_with_priority(IRQn_ADC1, 1);
             return status_success;
         } else {
             printf("%s initialization failed!\n", "ADC1");
@@ -295,7 +296,7 @@ void init_sequence_config(void)
 
     /* Set a sequence config */
     seq_cfg.seq_len    = sizeof(seq_adc_channel0);
-    seq_cfg.restart_en = false;
+    seq_cfg.restart_en = true;
     seq_cfg.cont_en    = true;
 #ifndef ADC_SOC_NO_HW_TRIG_SRC
     #ifndef __ADC16_USE_SW_TRIG
@@ -446,9 +447,9 @@ void sequence_handler1(void)
     adc16_trigger_seq_by_sw(HPM_ADC1);
 #endif
 
-    while (seq_complete_flag == 0) {
-        
-    }
+    //while (seq_complete_flag == 0) {
+    //    
+    //}
 
 #if !defined(ADC_SOC_NO_HW_TRIG_SRC) && !defined(__ADC16_USE_SW_TRIG)
     adc16_seq_disable_hw_trigger(HPM_ADC1);
