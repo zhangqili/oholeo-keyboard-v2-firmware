@@ -1,3 +1,6 @@
 [submodule "hpm_sdk"]
 	path = hpm_sdk
 	url = https://github.com/hpmicro/hpm_sdk.git
+[submodule "lib/libamp"]
+	path = lib/libamp
+	url = https://github.com/zhangqili/libamp.git
