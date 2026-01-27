@@ -8,31 +8,39 @@
 #include <stdio.h>
 #include "board.h"
 #include "hpm_gpio_drv.h"
+#include "hpm_gpiom_drv.h"
 #include "hpm_debug_console.h"
 #include "keyboard.h"
 #include "usbd_user.h"
 #include "usb_config.h"
+#include "adc.h"
 
-#define LED_FLASH_PERIOD_IN_MS 300
 
 int main(void)
-{
+{   
     board_init();
-    //board_init_led_pins();
-
-    //board_timer_create(LED_FLASH_PERIOD_IN_MS, board_led_toggle);
+    gpiom_set_pin_controller(HPM_GPIOM, GPIOM_ASSIGN_GPIOY, 0, gpiom_core0_fast);
+    gpio_set_pin_output(HPM_FGPIO, GPIO_OE_GPIOY, 0);
+    gpio_write_pin(HPM_FGPIO, GPIO_DO_GPIOY, 0, 0);
+    gpiom_set_pin_controller(HPM_GPIOM, GPIOM_ASSIGN_GPIOY, 1, gpiom_core0_fast);
+    gpio_set_pin_output(HPM_FGPIO, GPIO_OE_GPIOY, 1);
+    gpio_write_pin(HPM_FGPIO, GPIO_DO_GPIOY, 1, 1);
+    gpiom_set_pin_controller(HPM_GPIOM, GPIOM_ASSIGN_GPIOY, 2, gpiom_core0_fast);
+    gpio_set_pin_input(HPM_FGPIO, GPIO_OE_GPIOY, 2);
+    gpio_write_pin(HPM_FGPIO, GPIO_DO_GPIOY, 2, 1);
     printf("hello world\n");
+
+    /* ADC pin initialization */
+    board_init_adc16_pins();
+
+    /* ADC clock initialization */
+    board_init_adc_clock(HPM_ADC0, true);
+    board_init_adc_clock(HPM_ADC1, true);
     
-    //board_init_gpio_pins();
-    //gpio_set_pin_input(BOARD_APP_GPIO_CTRL, BOARD_APP_GPIO_INDEX, BOARD_APP_GPIO_PIN);
+    adc_init();
 
-    //board_init_led_pins();
     board_init_usb((USB_Type *)CONFIG_HPM_USBD_BASE);
-    //board_init_gpio_pins();
-    //gpio_set_pin_input(BOARD_APP_GPIO_CTRL, BOARD_APP_GPIO_INDEX, BOARD_APP_GPIO_PIN);
-
     intc_set_irq_priority(CONFIG_HPM_USBD_IRQn, 2);
-    //board_timer_create(LED_FLASH_PERIOD_IN_MS, board_led_toggle);
     keyboard_init();
     usb_init();
     while (1) {

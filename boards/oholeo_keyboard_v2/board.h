@@ -174,7 +174,6 @@
 #define BOARD_APP_ADC16_NAME     "ADC0"
 #define BOARD_APP_ADC16_BASE     HPM_ADC0
 #define BOARD_APP_ADC16_IRQn     IRQn_ADC0
-#define BOARD_APP_ADC16_CH_1     (13U)
 #define BOARD_APP_ADC16_CLK_NAME (clock_adc0)
 #define BOARD_APP_ADC16_CLK_BUS  (clk_adc_src_ahb0)
 
