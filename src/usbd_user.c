@@ -3,7 +3,6 @@
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
-#if 0
 #include "usbd_user.h"
 #include "board.h"
 #include "hpm_gpio_drv.h"
@@ -506,4 +505,3 @@ int usb_send_midi(uint8_t *buffer, uint8_t size)
 //		0x81, 0x03,   //Input (Constant, Variable, Absolute)
 //		0xC0,         //END Collection
 //		0xC0,         //END Collection 142
-#endif

@@ -10,13 +10,13 @@
 #include "hpm_gpio_drv.h"
 #include "hpm_debug_console.h"
 #include "keyboard.h"
+#include "usbd_user.h"
 #include "usb_config.h"
 
 #define LED_FLASH_PERIOD_IN_MS 300
 
 int main(void)
 {
-    int u;
     board_init();
     //board_init_led_pins();
 
@@ -33,12 +33,10 @@ int main(void)
 
     intc_set_irq_priority(CONFIG_HPM_USBD_IRQn, 2);
     //board_timer_create(LED_FLASH_PERIOD_IN_MS, board_led_toggle);
-
-    printf("cherry usb hid_keyboard device sample.\n");
-
-    hid_keyboard_init(0, CONFIG_HPM_USBD_BASE);
+    keyboard_init();
+    usb_init();
     while (1) {
-        hid_keyboard_test(0);
+        printf("alive\n");
     }
 
 

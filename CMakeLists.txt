@@ -25,7 +25,11 @@ find_package(hpm-sdk REQUIRED HINTS ${CMAKE_SOURCE_DIR}/hpm_sdk)
 project(${CMAKE_PROJECT_NAME})
 
 set(LIBAMP_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include)
-add_subdirectory_ifndef(WTF lib/libamp)
+add_subdirectory(lib/libamp)
+target_compile_options(libamp PRIVATE
+    -march=${RV_ARCH}
+    -mabi=${RV_ABI}
+)
 
 file(GLOB_RECURSE MY_SOURCES
     "./src/*.c")
@@ -34,18 +38,10 @@ sdk_app_src(${MY_SOURCES})
 
 sdk_inc(
     include
-    ${CMAKE_SOURCE_DIR}/lib/libamp/src
-    ${CMAKE_SOURCE_DIR}/lib/libamp/usb
-    ${CMAKE_SOURCE_DIR}/lib/libamp/src/midi
-    ${CMAKE_SOURCE_DIR}/lib/libamp/src/midi/bytequeue
-    ${CMAKE_SOURCE_DIR}/lib/libamp/src/lamp_array
-    ${CMAKE_SOURCE_DIR}/lib/libamp/lib/littlefs
-    ${CMAKE_SOURCE_DIR}/lib/libamp/lib/lufa
-    ${CMAKE_SOURCE_DIR}/lib/libamp/lib/mquickjs
-    ${CMAKE_BINARY_DIR}/lib/libamp
 )
 
-sdk_link_libraries(
-    lib/libamp
+target_link_libraries(app PRIVATE
+    libamp
+    m
 )
 

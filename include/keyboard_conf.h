@@ -48,16 +48,16 @@
 /***********/
 /* Storage */
 /***********/
-#define STORAGE_ENABLE
-#define LFS_ENABLE
-#define LFS_READ_SIZE       16
-#define LFS_PROG_SIZE       16
-#define LFS_BLOCK_SIZE      4096
-#define LFS_BLOCK_COUNT     4096
-#define LFS_CACHE_SIZE      16
-#define LFS_LOOKAHEAD_SIZE  16
-#define LFS_BLOCK_CYCLES    500
-#define LFS_BUFFER_SIZE     16
+//#define STORAGE_ENABLE
+//#define LFS_ENABLE
+//#define LFS_READ_SIZE       16
+//#define LFS_PROG_SIZE       16
+//#define LFS_BLOCK_SIZE      4096
+//#define LFS_BLOCK_COUNT     4096
+//#define LFS_CACHE_SIZE      16
+//#define LFS_LOOKAHEAD_SIZE  16
+//#define LFS_BLOCK_CYCLES    500
+//#define LFS_BUFFER_SIZE     16
 
 /*******/
 /* RGB */
