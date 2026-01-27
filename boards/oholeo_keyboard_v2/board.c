@@ -293,7 +293,7 @@ void board_init_usb(USB_Type *ptr)
         board_delay_ms(100);
 
         /* As QFN48 and LQFP64 has no vbus pin, so should be call usb_phy_using_internal_vbus() API to use internal vbus. */
-        /* usb_phy_using_internal_vbus(ptr); */
+        usb_phy_using_internal_vbus(ptr);
     }
 }
 
@@ -700,10 +700,10 @@ void init_usb_pins(USB_Type *ptr)
 {
     if (ptr == HPM_USB0) {
         /* Package QFN48 and LQFP64 should be set PA24 and PA25 pins as analog type to enable USB_P and USB_N. */
-        /*
-         * HPM_IOC->PAD[IOC_PAD_PA24].FUNC_CTL = IOC_PAD_FUNC_CTL_ANALOG_MASK;
-         * HPM_IOC->PAD[IOC_PAD_PA25].FUNC_CTL = IOC_PAD_FUNC_CTL_ANALOG_MASK;
-         */
+        
+        HPM_IOC->PAD[IOC_PAD_PA24].FUNC_CTL = IOC_PAD_FUNC_CTL_ANALOG_MASK;
+        HPM_IOC->PAD[IOC_PAD_PA25].FUNC_CTL = IOC_PAD_FUNC_CTL_ANALOG_MASK;
+        
         init_usb0_pins();
     }
 }
