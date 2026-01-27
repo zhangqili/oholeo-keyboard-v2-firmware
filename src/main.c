@@ -14,7 +14,9 @@
 #include "usbd_user.h"
 #include "usb_config.h"
 #include "adc.h"
+#include "gptmr.h"
 #include "analog.h"
+#include "rgb.h"
 
 
 int main(void)
@@ -40,11 +42,25 @@ int main(void)
     gptmr_init();
 
     board_init_usb((USB_Type *)CONFIG_HPM_USBD_BASE);
-    intc_set_irq_priority(CONFIG_HPM_USBD_IRQn, 2);
+    intc_set_irq_priority(CONFIG_HPM_USBD_IRQn, 3);
+    gptmr_start_counter(RINGBUF_TICK_GPTMR, RINGBUF_TICK_GPTMR_CH);
     keyboard_init();
+    keyboard_reset_to_default();
+    board_delay_ms(100);
+
+    filter_reset();
+    analog_reset_range();
+    analog_scan();
     usb_init();
+    gptmr_start_counter(KEYBOARD_TICK_GPTMR, KEYBOARD_TICK_GPTMR_CH);
+    g_keyboard_config.enable_report = true;
     while (1) {
-        printf("alive\n");
+      //rgb_update();
+      board_delay_ms(1);
+      //keyboard_task();
+      //printf("%ld\n",g_keyboard_tick);
+      AdvancedKey * key = &g_keyboard_advanced_keys[0];
+      printf("%.2f\t%.2f\t%.2f\t%d\n", ringbuf_avg(&g_adc_ringbufs[g_analog_map[0]]), key->raw, key->value, key->key.state);
     }
 
 

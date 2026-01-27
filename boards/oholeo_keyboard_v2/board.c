@@ -704,7 +704,7 @@ void init_usb_pins(USB_Type *ptr)
         HPM_IOC->PAD[IOC_PAD_PA24].FUNC_CTL = IOC_PAD_FUNC_CTL_ANALOG_MASK;
         HPM_IOC->PAD[IOC_PAD_PA25].FUNC_CTL = IOC_PAD_FUNC_CTL_ANALOG_MASK;
         
-        init_usb0_pins();
+        //init_usb0_pins();
     }
 }
 

@@ -31,6 +31,15 @@ target_compile_options(libamp PRIVATE
     -mabi=${RV_ABI}
 )
 
+if(CMAKE_BUILD_TYPE STREQUAL "release")
+    sdk_compile_options("-O3")
+    sdk_compile_options("-flto=auto")
+    sdk_compile_definitions("NDEBUG=1")
+else()
+    sdk_compile_options("-O0", "-g")
+    sdk_compile_definitions("DEBUG=1")
+endif()
+
 file(GLOB_RECURSE MY_SOURCES
     "./src/*.c")
 # 添加源文件

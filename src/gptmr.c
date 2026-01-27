@@ -5,22 +5,14 @@
  *
  */
 
+#include "gptmr.h"
 #include <stdio.h>
 #include "board.h"
 #include "hpm_sysctl_drv.h"
-#include "hpm_gptmr_drv.h"
 #include "hpm_debug_console.h"
 #include "keyboard.h"
 #include "analog.h"
 #include "hpm_adc16_drv.h"
-
-#define KEYBOARD_TICK_GPTMR               HPM_GPTMR0
-#define KEYBOARD_TICK_GPTMR_CH            0
-#define KEYBOARD_TICK_GPTMR_IRQ           IRQn_GPTMR0
-
-#define RINGBUF_TICK_GPTMR               HPM_GPTMR1
-#define RINGBUF_TICK_GPTMR_CH            0
-#define RINGBUF_TICK_GPTMR_IRQ           IRQn_GPTMR1
 
 void update_ringbuf()
 {
@@ -62,7 +54,6 @@ static void keyboard_tick_timer_config(void)
 
     config.reload = gptmr_freq / 8000 * 1;
     gptmr_channel_config(KEYBOARD_TICK_GPTMR, KEYBOARD_TICK_GPTMR_CH, &config, false);
-    gptmr_start_counter(KEYBOARD_TICK_GPTMR, KEYBOARD_TICK_GPTMR_CH);
 
     gptmr_enable_irq(KEYBOARD_TICK_GPTMR, GPTMR_CH_RLD_IRQ_MASK(KEYBOARD_TICK_GPTMR_CH));
     intc_m_enable_irq_with_priority(KEYBOARD_TICK_GPTMR_IRQ, 1);
@@ -77,9 +68,8 @@ static void ring_buf_timer_config(void)
     //ring buf
     gptmr_channel_get_default_config(RINGBUF_TICK_GPTMR, &config);
 
-    config.reload = gptmr_freq / 1000 * 1;
+    config.reload = gptmr_freq / 3000 * 1;
     gptmr_channel_config(RINGBUF_TICK_GPTMR, RINGBUF_TICK_GPTMR_CH, &config, false);
-    gptmr_start_counter(RINGBUF_TICK_GPTMR, RINGBUF_TICK_GPTMR_CH);
 
     gptmr_enable_irq(RINGBUF_TICK_GPTMR, GPTMR_CH_RLD_IRQ_MASK(RINGBUF_TICK_GPTMR_CH));
     intc_m_enable_irq_with_priority(RINGBUF_TICK_GPTMR_IRQ, 2);
@@ -101,6 +91,7 @@ void keyboard_tick_isr(void)
     if (gptmr_check_status(KEYBOARD_TICK_GPTMR, GPTMR_CH_RLD_STAT_MASK(KEYBOARD_TICK_GPTMR_CH))) {
         gptmr_clear_status(KEYBOARD_TICK_GPTMR, GPTMR_CH_RLD_STAT_MASK(KEYBOARD_TICK_GPTMR_CH));
         g_keyboard_tick++;
+        //keyboard_task();
     }
 }
 

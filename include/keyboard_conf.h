@@ -11,7 +11,7 @@
 /********************/
 #define LAYER_NUM               5
 #define ADVANCED_KEY_NUM        69
-#define KEY_NUM                 0
+#define KEY_NUM                 3
 //#define FIXED_POINT_EXPERIMENTAL
 #define OPTIMIZE_FOR_FLOAT_DIVISION
 //#define CONTINOUS_DEBUG
