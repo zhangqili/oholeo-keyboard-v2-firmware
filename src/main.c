@@ -40,6 +40,8 @@ int main(void)
     
     adc_init();
     gptmr_init();
+    extern int flash_init(void);
+    flash_init();
 
     board_init_usb((USB_Type *)CONFIG_HPM_USBD_BASE);
     intc_set_irq_priority(CONFIG_HPM_USBD_IRQn, 3);
@@ -57,8 +59,7 @@ int main(void)
     while (1) {
       //rgb_update();
       board_delay_ms(1);
-      //keyboard_task();
-      //printf("%ld\n",g_keyboard_tick);
+      keyboard_task();
       AdvancedKey * key = &g_keyboard_advanced_keys[0];
       printf("%.2f\t%.2f\t%.2f\t%d\n", ringbuf_avg(&g_adc_ringbufs[g_analog_map[0]]), key->raw, key->value, key->key.state);
     }

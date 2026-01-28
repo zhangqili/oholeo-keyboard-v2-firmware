@@ -68,7 +68,7 @@ static void ring_buf_timer_config(void)
     //ring buf
     gptmr_channel_get_default_config(RINGBUF_TICK_GPTMR, &config);
 
-    config.reload = gptmr_freq / 3000 * 1;
+    config.reload = gptmr_freq / 1000 * 1;
     gptmr_channel_config(RINGBUF_TICK_GPTMR, RINGBUF_TICK_GPTMR_CH, &config, false);
 
     gptmr_enable_irq(RINGBUF_TICK_GPTMR, GPTMR_CH_RLD_IRQ_MASK(RINGBUF_TICK_GPTMR_CH));

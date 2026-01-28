@@ -11,6 +11,8 @@
 #include "qmk_midi.h"
 #include "hpm_gpio_drv.h"
 #include "hpm_gpiom_drv.h"
+#include "hpm_romapi.h"
+#include "hpm_l1c_drv.h"
 //#include "ws2812.h"
 
 const Keycode g_default_keymap[LAYER_NUM][TOTAL_KEY_NUM] = {
@@ -1078,21 +1080,41 @@ int send_remote_wakeup(void)
     return usbd_send_remote_wakeup(0);
 }
 
-//extern sfud_flash sfud_norflash0;
+static xpi_nor_config_t s_xpi_nor_config;
+int flash_init(void)
+{
+    xpi_nor_config_option_t option;
+    option.header.U = BOARD_APP_XPI_NOR_CFG_OPT_HDR;
+    option.option0.U = BOARD_APP_XPI_NOR_CFG_OPT_OPT0;
+    option.option1.U = BOARD_APP_XPI_NOR_CFG_OPT_OPT1;
+
+    hpm_stat_t status = rom_xpi_nor_auto_config(BOARD_APP_XPI_NOR_XPI_BASE, &s_xpi_nor_config, &option);
+    if (status != status_success) {
+        return status;
+    }
+    return status;
+}
 
 int flash_read(uint32_t addr, uint32_t size, uint8_t *data)
-{
-    //return sfud_read(&sfud_norflash0, addr, size, data);
+{   
+    uint32_t program_start = 512*1024 + addr;
+    uint32_t program_size = size;
+    return rom_xpi_nor_read(BOARD_APP_XPI_NOR_XPI_BASE, xpi_xfer_channel_auto, &s_xpi_nor_config, data, program_start, program_size);
 }
 
 int flash_write(uint32_t addr, uint32_t size, const uint8_t *data)
 {
-    //return sfud_write(&sfud_norflash0, addr, size, data);
+    uint32_t program_start = 512*1024 + addr;
+    uint32_t program_size = size;
+    return rom_xpi_nor_program(BOARD_APP_XPI_NOR_XPI_BASE, xpi_xfer_channel_auto, &s_xpi_nor_config, data, program_start, program_size);
 }
 
 int flash_erase(uint32_t addr, uint32_t size)
 {
-    //return sfud_erase(&sfud_norflash0, addr, size);
+    uint32_t erase_start = 512*1024 + addr;
+    uint32_t erase_size = size;
+
+    return rom_xpi_nor_erase(BOARD_APP_XPI_NOR_XPI_BASE, xpi_xfer_channel_auto, &s_xpi_nor_config, erase_start, erase_size);
 }
 
 int led_set(uint16_t index, uint8_t r, uint8_t g, uint8_t b)
