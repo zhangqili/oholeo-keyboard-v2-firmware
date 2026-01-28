@@ -214,7 +214,7 @@
 /* APP PWM */
 #define BOARD_APP_PWM             HPM_PWM0
 #define BOARD_APP_PWM_CLOCK_NAME  clock_mot0
-#define BOARD_APP_PWM_OUT1        2
+#define BOARD_APP_PWM_OUT1        0
 #define BOARD_APP_PWM_OUT2        3
 #define BOARD_APP_TRGM            HPM_TRGM0
 #define BOARD_APP_PWM_IRQ         IRQn_PWM0

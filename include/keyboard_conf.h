@@ -182,7 +182,7 @@
 /* User Defines */
 /****************/
 #define PULSE 1000
-#define PULSE_LEN_MS 40
+#define PULSE_LEN_MS 320
 
 enum USER_KEYCODE {
     USER_BEEP = 0,
