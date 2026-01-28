@@ -11,7 +11,7 @@
 /********************/
 #define LAYER_NUM               5
 #define ADVANCED_KEY_NUM        69
-#define KEY_NUM                 3
+#define KEY_NUM                 2
 //#define FIXED_POINT_EXPERIMENTAL
 #define OPTIMIZE_FOR_FLOAT_DIVISION
 //#define CONTINOUS_DEBUG
@@ -21,6 +21,8 @@
 #define SUSPEND_ENABLE
 #define OPTIMIZE_KEY_BITMAP
 #define OPTIMIZE_MOVING_AVERAGE_FOR_RINGBUF
+#define ENCODER_ENABLE
+#define ENCODER_NUM 1
 #define DEBOUNCE_PRESS          0
 #define DEBOUNCE_PRESS_EAGER    1
 #define DEBOUNCE_RELEASE        0

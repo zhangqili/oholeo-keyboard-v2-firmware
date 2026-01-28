@@ -13,6 +13,8 @@
 #include "hpm_gpiom_drv.h"
 #include "hpm_romapi.h"
 #include "hpm_l1c_drv.h"
+#include "encoder.h"
+#include "hpm_qeiv2_drv.h"
 //#include "ws2812.h"
 
 const Keycode g_default_keymap[LAYER_NUM][TOTAL_KEY_NUM] = {
@@ -22,7 +24,7 @@ const Keycode g_default_keymap[LAYER_NUM][TOTAL_KEY_NUM] = {
         KEY_CAPS_LOCK/*30*/,    KEY_A/*31*/,    KEY_S/*32*/,    KEY_D/*33*/,    KEY_F/*34*/,    KEY_G/*35*/,    KEY_H/*36*/,    KEY_J/*37*/,    KEY_K/*38*/,    KEY_L/*39*/,    KEY_SEMICOLON/*40*/,KEY_APOSTROPHE/*41*/,   KEY_ENTER/*42*/,
         KEY_LEFT_SHIFT<<8/*43*/,KEY_Z/*44*/,    KEY_X/*45*/,    KEY_C/*46*/,    KEY_V/*47*/,    KEY_B/*48*/,    KEY_N/*49*/,    KEY_M/*50*/,    KEY_COMMA/*51*/,KEY_DOT/*52*/,  KEY_SLASH/*53*/,    KEY_RIGHT_SHIFT<<8/*54*/,KEY_UP_ARROW/*55*/,    KEY_DELETE/*56*/,
         KEY_LEFT_CTRL<<8/*57*/, KEY_LEFT_GUI<<8/*58*/, KEY_LEFT_ALT<<8/*59*/, KEY_SPACEBAR/*60*/, KEY_RIGHT_ALT<<8/*61*/, LAYER(LAYER_MOMENTARY, 1)/*62*/, KEY_LEFT_ARROW/*63*/, KEY_DOWN_ARROW/*64*/, KEY_RIGHT_ARROW/*65*/,
-        KEY_SPACEBAR/*66*/,     KEY_SPACEBAR/*67*/,     KEY_SPACEBAR/*68*/,
+        KEY_SPACEBAR/*66*/,     KEY_SPACEBAR/*67*/,     KEY_SPACEBAR/*68*/,  KEYCODE(CONSUMER_COLLECTION, CONSUMER_AUDIO_VOL_UP)/*69*/, KEYCODE(CONSUMER_COLLECTION, CONSUMER_AUDIO_VOL_DOWN)/*70*/,
     },
     {
         KEY_GRAVE,              KEY_F1,         KEY_F2,         KEY_F3,         KEY_F4,         KEY_F5,         KEY_F6,         KEY_F7,         KEY_F8,         KEY_F9,         KEY_F10,            KEY_F11,            KEY_F12,                KEY_TRANSPARENT,    KEY_TRANSPARENT,    KEY_TRANSPARENT,
@@ -30,7 +32,7 @@ const Keycode g_default_keymap[LAYER_NUM][TOTAL_KEY_NUM] = {
         KEY_TRANSPARENT,        KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,    KEY_TRANSPARENT,    KEY_TRANSPARENT,
         KEY_TRANSPARENT,        KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,    KEY_INSERT,         KEY_PAGE_UP,            LAYER(LAYER_MOMENTARY, 2),
         KEY_TRANSPARENT,        KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_HOME,       KEY_PAGE_DOWN,  KEY_END,
-        KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,
+        KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,
     },
     {
         KEYBOARD_OPERATION | (KEYBOARD_BOOTLOADER << 8),  KEYBOARD_OPERATION | (KEYBOARD_CONFIG0 << 8),                     KEYBOARD_OPERATION | (KEYBOARD_CONFIG1 << 8), KEYBOARD_OPERATION | (KEYBOARD_CONFIG2 << 8),                     KEYBOARD_OPERATION | (KEYBOARD_CONFIG3 << 8),       KEY_TRANSPARENT,                                                KEY_TRANSPARENT,               KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,                                KEY_TRANSPARENT,    KEYBOARD_OPERATION | (KEYBOARD_RGB_BRIGHTNESS_DOWN << 8),    KEYBOARD_OPERATION | (KEYBOARD_RGB_BRIGHTNESS_UP << 8),    KEYBOARD_OPERATION | (KEYBOARD_RESET_TO_DEFAULT << 8),KEY_TRANSPARENT,KEYBOARD_OPERATION | (KEYBOARD_RESET_TO_DEFAULT << 8),
@@ -38,9 +40,17 @@ const Keycode g_default_keymap[LAYER_NUM][TOTAL_KEY_NUM] = {
         KEY_USER | (USER_SNAKE_LAUNCH << 8),              KEY_TRANSPARENT,                                                  KEYBOARD_OPERATION | (KEYBOARD_SAVE << 8),    KEYBOARD_CONFIG(KEYBOARD_CONFIG_DEBUG, KEYBOARD_CONFIG_TOGGLE),   KEYBOARD_OPERATION | (KEYBOARD_FACTORY_RESET << 8), KEY_TRANSPARENT,                                                KEY_TRANSPARENT,               KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_USER | (USER_TOGGLE_LOW_LATENCY_MODE << 8), KEY_TRANSPARENT,    KEY_TRANSPARENT,    KEY_TRANSPARENT,
         KEY_TRANSPARENT,                                  KEY_TRANSPARENT,                                                  KEY_TRANSPARENT,                              KEY_TRANSPARENT,                                                  KEY_USER | (USER_EM << 8),                          KEY_USER | (USER_BEEP << 8),                                    KEY_USER | (USER_RESET << 8),  KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,                                KEY_TRANSPARENT,    KEY_TRANSPARENT,    KEY_TRANSPARENT,        KEY_TRANSPARENT,
         KEY_TRANSPARENT,                                  KEYBOARD_CONFIG(KEYBOARD_CONFIG_WINLOCK, KEYBOARD_CONFIG_TOGGLE), KEY_TRANSPARENT,                              KEY_TRANSPARENT,                                                  KEY_TRANSPARENT,                                    KEY_TRANSPARENT,                                                KEY_TRANSPARENT,               KEY_TRANSPARENT,KEY_TRANSPARENT,
-        KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,
+        KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,
     }
 
+};
+
+Encoder g_encoders[ENCODER_NUM] =
+{
+    {
+        .cw_id = 69,
+        .ccw_id = 70
+    }
 };
 
 const uint16_t g_rgb_mapping[RGB_NUM] = {   
@@ -1099,14 +1109,14 @@ int flash_read(uint32_t addr, uint32_t size, uint8_t *data)
 {   
     uint32_t program_start = 512*1024 + addr;
     uint32_t program_size = size;
-    return rom_xpi_nor_read(BOARD_APP_XPI_NOR_XPI_BASE, xpi_xfer_channel_auto, &s_xpi_nor_config, data, program_start, program_size);
+    return rom_xpi_nor_read(BOARD_APP_XPI_NOR_XPI_BASE, xpi_xfer_channel_auto, &s_xpi_nor_config, (uint32_t *)data, program_start, program_size);
 }
 
 int flash_write(uint32_t addr, uint32_t size, const uint8_t *data)
 {
     uint32_t program_start = 512*1024 + addr;
     uint32_t program_size = size;
-    return rom_xpi_nor_program(BOARD_APP_XPI_NOR_XPI_BASE, xpi_xfer_channel_auto, &s_xpi_nor_config, data, program_start, program_size);
+    return rom_xpi_nor_program(BOARD_APP_XPI_NOR_XPI_BASE, xpi_xfer_channel_auto, &s_xpi_nor_config, (const uint32_t *)data, program_start, program_size);
 }
 
 int flash_erase(uint32_t addr, uint32_t size)
@@ -1125,6 +1135,7 @@ int led_set(uint16_t index, uint8_t r, uint8_t g, uint8_t b)
 
 void keyboard_scan()
 {
+    encoder_input_delta(0, (int32_t)qeiv2_get_phase_cnt(BOARD_BLDC_QEIV2_BASE)/4 - g_encoders[0].count);
     //keyboard_key_update(&g_keyboard_advanced_keys[0], );
 }
 

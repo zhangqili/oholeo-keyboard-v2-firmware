@@ -68,29 +68,6 @@ __IO uint8_t seq_complete_flag;
 __IO uint8_t trig_complete_flag;
 __IO uint32_t res_out_of_thr_flag;
 
-
-static uint8_t get_adc_conv_mode(void)
-{
-    uint8_t ch;
-
-    while (1) {
-        printf("1. Oneshot    mode\n");
-        printf("2. Period     mode\n");
-        printf("3. Sequence   mode\n");
-        printf("4. Preemption mode\n");
-
-        printf("Please enter one of ADC conversion modes above (e.g. 1 or 2 ...): ");
-        printf("%c\n", ch = getchar());
-        ch -= '0' + 1;
-        if (ch > adc16_conv_mode_preemption) {
-            printf("The ADC mode is not supported!\n");
-        } else {
-            return ch;
-        }
-    }
-}
-
-
 hpm_stat_t process_seq_data(uint32_t *buff, int32_t start_pos, uint32_t len)
 {
     adc16_seq_dma_data_t *dma_data = (adc16_seq_dma_data_t *)buff;
@@ -260,8 +237,8 @@ hpm_stat_t init_common_config(void)
 
 void channel_result_out_of_threshold_handler(void)
 {
-    adc16_channel_threshold_t threshold;
-    uint32_t i = 31;
+    //adc16_channel_threshold_t threshold;
+    //uint32_t i = 31;
 
     //if (res_out_of_thr_flag) {
     //    while (i--) {
@@ -512,42 +489,9 @@ bool abort_handler1(uint8_t conv_mode)
     }
 }
 
-void adc_demo(void)
-{
-
-    uint8_t conv_mode;
-    printf("This is an ADC16 demo:\n");
-
-    while (1) {
-
-        /* ADC16 common initialization */
-        init_common_config();
-        init_sequence_config();
-
-        /* Main loop */
-        while (1) {
-            channel_result_out_of_threshold_handler();
-
-            if (conv_mode == adc16_conv_mode_oneshot) {
-            } else if (conv_mode == adc16_conv_mode_sequence) {
-                sequence_handler();
-
-            } else {
-                printf("Conversion mode is not supported!\n");
-            }
-
-            if (abort_handler(conv_mode)) {
-                break;
-            }
-        }
-    }
-}
-
 int adc_init(void)
 {
-
-    uint8_t conv_mode;
-    printf("This is an ADC16 demo:\n");
+    //printf("This is an ADC16 demo:\n");
     /* ADC16 common initialization */
     init_common_config();
     init_sequence_config();
@@ -560,6 +504,7 @@ int adc_init(void)
     //        break;
     //    }
     //}
+    return 0;
 }
 
 
