@@ -1122,3 +1122,27 @@ int led_set(uint16_t index, uint8_t r, uint8_t g, uint8_t b)
     //ws2812_set(index, r, g, b);
     return 0;
 }
+
+void keyboard_scan()
+{
+    //keyboard_key_update(&g_keyboard_advanced_keys[0], );
+}
+
+
+AnalogRawValue advanced_key_read_raw(AdvancedKey *advanced_key)
+{
+    AnalogRawValue raw = ringbuf_avg(&g_adc_ringbufs[g_analog_map[advanced_key->key.id]]);
+    if (advanced_key->config.mode == ADVANCED_KEY_DIGITAL_MODE)
+    {
+        switch (advanced_key->key.id)
+        {
+        case 15:
+            raw = !gpio_read_pin(HPM_GPIO0, GPIO_OE_GPIOA, 9);;
+            break;
+        default:
+            raw = 0;
+            break;
+        }
+    }
+    return raw;
+}

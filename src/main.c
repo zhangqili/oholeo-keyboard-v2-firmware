@@ -82,6 +82,11 @@ int main(void)
     gpiom_set_pin_controller(HPM_GPIOM, GPIOM_ASSIGN_GPIOY, 2, gpiom_core0_fast);
     gpio_set_pin_output(HPM_FGPIO, GPIO_OE_GPIOY, 2);
     analog_channel_select(0);
+    HPM_IOC->PAD[IOC_PAD_PA09].FUNC_CTL = IOC_PA09_FUNC_CTL_GPIO_A_09;
+    gpiom_set_pin_controller(HPM_GPIOM, GPIOM_ASSIGN_GPIOA, 9, gpiom_soc_gpio0);
+    gpio_set_pin_input(HPM_GPIO0, GPIO_OE_GPIOA, 9);
+    gpio_disable_pin_interrupt(HPM_GPIO0, GPIO_IE_GPIOA, 9);
+
     printf("hello world\n");
 
     init_pwm_pins(HPM_PWM0);
@@ -117,12 +122,13 @@ int main(void)
     gptmr_start_counter(KEYBOARD_TICK_GPTMR, KEYBOARD_TICK_GPTMR_CH);
     g_keyboard_config.enable_report = true;
     beep_switch = true;
+    g_keyboard_advanced_keys[15].config.mode = ADVANCED_KEY_DIGITAL_MODE;
 
     while (1) {
       //rgb_update();
       board_delay_ms(1);
-      AdvancedKey * key = &g_keyboard_advanced_keys[0];
-      printf("%.2f\t%.2f\t%.2f\t%d\n", ringbuf_avg(&g_adc_ringbufs[g_analog_map[0]]), key->raw, key->value, key->key.state);
+      AdvancedKey * key = &g_keyboard_advanced_keys[15];
+      printf("%.2f\t%.2f\t%.2f\t%d\n", ringbuf_avg(&g_adc_ringbufs[g_analog_map[15]]), key->raw, key->value, key->key.state);
     }
 
 
