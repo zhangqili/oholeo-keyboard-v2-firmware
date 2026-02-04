@@ -213,7 +213,8 @@ int main(void)
       }
       last_rgb_state = rgb_state;
       AdvancedKey * key = &g_keyboard_advanced_keys[57];
-      printf("%.2f,%.2f,%.2f,%.2f,%d\n",ringbuf_avg(&g_adc_ringbufs[g_analog_map[16]]), ringbuf_avg(&g_adc_ringbufs[g_analog_map[17]]), ringbuf_avg(&g_adc_ringbufs[g_analog_map[28]]), ringbuf_avg(&g_adc_ringbufs[g_analog_map[35]]), rgb_state);
+      //printf("%.2f,%.2f,%.2f,%.2f,%d\n",ringbuf_avg(&g_adc_ringbufs[g_analog_map[16]]), ringbuf_avg(&g_adc_ringbufs[g_analog_map[17]]), ringbuf_avg(&g_adc_ringbufs[g_analog_map[28]]), ringbuf_avg(&g_adc_ringbufs[g_analog_map[35]]), rgb_state);
+      printf("%.2f,%.2f,%.2f,%.2f,%d\n",g_keyboard_advanced_keys[16].value, g_keyboard_advanced_keys[17].value, g_keyboard_advanced_keys[28].value, g_keyboard_advanced_keys[35].value, rgb_state);
       board_delay_ms(1);
     }
 
