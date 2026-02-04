@@ -39,13 +39,13 @@
 #define DEFAULT_LOWER_DEADZONE      0.2
 #define DEFAULT_ACTIVATION_VALUE    0.5
 #define DEFAULT_DEACTIVATION_VALUE  0.49
-#define DEFAULT_ESTIMATED_RANGE     500
+#define DEFAULT_ESTIMATED_RANGE     2048
 
 /**********/
 /* Analog */
 /**********/
 #define ANALOG_BUFFER_LENGTH    80
-#define RING_BUF_LEN            8
+#define RING_BUF_LEN            4
 #define CALIBRATION_LPF_ENABLE
 
 /***********/

@@ -17,6 +17,9 @@
 #include "hpm_qeiv2_drv.h"
 #include "ws2812.h"
 #include "hpm_serial_nor.h"
+#include "hpm_ppor_drv.h"
+#include "hpm_romapi.h"
+#include "hpm_interrupt.h"
 
 const Keycode g_default_keymap[LAYER_NUM][TOTAL_KEY_NUM] = {
     {
@@ -975,8 +978,7 @@ void keyboard_delay(uint32_t ms)
 
 void keyboard_reboot()
 {
-    //__set_FAULTMASK(1);
-    //NVIC_SystemReset();
+    ppor_sw_reset(HPM_PPOR, 10);
 }
 
 #define SEL_MASK  (A_Pin | B_Pin | C_Pin | D_Pin)
@@ -990,8 +992,27 @@ void analog_channel_select(uint8_t x)
 
 void keyboard_jump_to_bootloader(void)
 {
-    //void JumpToBootloader(void);
-    //JumpToBootloader();
+    disable_global_irq(CSR_MSTATUS_MIE_MASK);
+    clock_disable(clock_usb0); 
+    
+    /* 也可以尝试禁用 USB 中断源，防止残留中断 */
+    intc_disable_irq(HPM_PLIC_TARGET_M_MODE, IRQn_USB0);
+
+    /* ------------------------------------------------------------------
+     * 第四步：清理 Cache
+     * ------------------------------------------------------------------ */
+    if (l1c_dc_is_enabled()) {
+        /* 将 Cache 中的脏数据写回 RAM，并标记无效 */
+        l1c_dc_flush_all(); 
+        l1c_dc_disable();
+    }
+    if (l1c_ic_is_enabled()) {
+        l1c_ic_disable();
+    }
+    rom_enter_bootloader(NULL);
+    while (1)
+    {
+    }
 }
 
 void keyboard_user_event_handler(KeyboardEvent event)
@@ -1001,7 +1022,6 @@ void keyboard_user_event_handler(KeyboardEvent event)
         return;
     }
     keyboard_key_event_down_callback((Key*)event.key);
-#if 0
     extern bool beep_switch;
     extern bool em_switch;
     switch (KEYCODE_GET_SUB(event.keycode))
@@ -1013,31 +1033,31 @@ void keyboard_user_event_handler(KeyboardEvent event)
         em_switch = !em_switch;
         break;
     case USER_SNAKE_LAUNCH:
-        if (!low_latency_mode)
-        {
-            snake_launch(&g_snake);
-        }
+        //if (!low_latency_mode)
+        //{
+        //    snake_launch(&g_snake);
+        //}
         break;
     case USER_SNAKE_QUIT:
-        snake_quit(&g_snake);
+        //snake_quit(&g_snake);
         break;
     case USER_SNAKE_PAUSE:
-        snake_pause(&g_snake);
+        //snake_pause(&g_snake);
         break;
     case USER_SNAKE_SPEED_UP:
-        snake_speed_up(&g_snake);
+        //snake_speed_up(&g_snake);
         break;
     case USER_SNAKE_SPEED_DOWN:
-        snake_speed_down(&g_snake);
+        //snake_speed_down(&g_snake);
         break;
     case USER_SNAKE_RESTART:
-        snake_restart(&g_snake);
+        //snake_restart(&g_snake);
         break;
     case USER_SNAKE_LEFT:
     case USER_SNAKE_UP:
     case USER_SNAKE_RIGHT:
     case USER_SNAKE_DOWN:
-        snake_turn(&g_snake, KEYCODE_GET_SUB(event.keycode)&0x07);
+        //snake_turn(&g_snake, KEYCODE_GET_SUB(event.keycode)&0x07);
         break;
     case USER_TOGGLE_LOW_LATENCY_MODE:
         low_latency_mode = !low_latency_mode;
@@ -1051,7 +1071,6 @@ void keyboard_user_event_handler(KeyboardEvent event)
         g_keyboard_config.nkro = true;
         break;
     }
-#endif
 }
 
 int hid_send_shared_ep(uint8_t *report, uint16_t len)

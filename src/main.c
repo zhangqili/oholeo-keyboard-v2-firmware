@@ -85,6 +85,8 @@ bool em_switch;
 static uint32_t timer_freq_in_hz;
 hpm_serial_nor_t nor_flash_dev = {0};
 hpm_serial_nor_info_t flash_info;
+uint32_t debug;
+uint32_t debug1;
 
 static void key_down_cb(void * k)
 {
@@ -136,7 +138,7 @@ void beep_init(void)
 #define TRANSFER_SIZE (15360U)
 ATTR_PLACE_AT_NONCACHEABLE_WITH_ALIGNMENT(HPM_L1C_CACHELINE_SIZE) uint8_t wbuff[TRANSFER_SIZE];
 ATTR_PLACE_AT_NONCACHEABLE_WITH_ALIGNMENT(HPM_L1C_CACHELINE_SIZE) uint8_t rbuff[TRANSFER_SIZE];
-
+volatile bool is_init_complete = false;
 
 int main(void)
 {   
@@ -153,18 +155,11 @@ int main(void)
     gpio_set_pin_input(HPM_GPIO0, GPIO_OE_GPIOA, 9);
     gpio_disable_pin_interrupt(HPM_GPIO0, GPIO_IE_GPIOA, 9);
 
-    hpm_stat_t stat;
-    uint32_t transfer_len = 0;
-    uint32_t addr = 0;
-    uint32_t i = 0, j = 0;
-    uint64_t elapsed = 0, now;
-    double write_speed, read_speed;
-
     serial_nor_get_board_host(&nor_flash_dev.host);
     board_init_spi_clock(nor_flash_dev.host.host_param.param.host_base);
     serial_nor_spi_pins_init(nor_flash_dev.host.host_param.param.host_base);
     timer_freq_in_hz = clock_get_frequency(clock_mchtmr0);
-    stat = hpm_serial_nor_init(&nor_flash_dev, &flash_info);
+    hpm_stat_t stat = hpm_serial_nor_init(&nor_flash_dev, &flash_info);
     if (hpm_serial_nor_get_info(&nor_flash_dev, &flash_info) == status_success) {
         printf("the flash sfdp version:%d\n", flash_info.sfdp_version);
         printf("the flash size:%d KB\n", flash_info.size_in_kbytes);
@@ -206,7 +201,7 @@ int main(void)
     {
       key_attach(keyboard_get_key(i),KEY_EVENT_DOWN,key_down_cb);
     }
-    keyboard_reset_to_default();
+    //keyboard_reset_to_default();
     gptmr_start_counter(KEYBOARD_TICK_GPTMR, KEYBOARD_TICK_GPTMR_CH);
     //board_delay_ms(100);
 
@@ -214,10 +209,38 @@ int main(void)
     filter_reset();
     analog_reset_range();
     analog_scan();
+    
+    if (ringbuf_avg(&g_adc_ringbufs[g_analog_map[0]])< 8192 || ringbuf_avg(&g_adc_ringbufs[g_analog_map[0]]) > (65536 - 8192))
+    {
+      for (uint8_t i = 0; i < ADVANCED_KEY_NUM; i++)
+      {
+          rgb_set(i, 100, 0, 0);
+      }
+      led_flush();
+      keyboard_jump_to_bootloader();
+    }
+    if (ringbuf_avg(&g_adc_ringbufs[g_analog_map[13]]) < 8192 || ringbuf_avg(&g_adc_ringbufs[g_analog_map[13]]) > (65536 - 8192))
+    {
+      keyboard_reset_to_default();
+      keyboard_save();
+      keyboard_reboot();
+    }
+    if (ringbuf_avg(&g_adc_ringbufs[g_analog_map[14]]) < 8192 || ringbuf_avg(&g_adc_ringbufs[g_analog_map[14]]) > (65536 - 8192))
+    {
+      keyboard_reset_to_default();
+      keyboard_save();
+      keyboard_reboot();
+    }
+    if (ringbuf_avg(&g_adc_ringbufs[g_analog_map[65]]) < 8192 || ringbuf_avg(&g_adc_ringbufs[g_analog_map[65]]) > (65536 - 8192))
+    {
+      keyboard_factory_reset();
+      keyboard_reboot();
+    }
     usb_init();
     g_keyboard_config.enable_report = true;
-    beep_switch = true;
-    g_keyboard_advanced_keys[15].config.mode = ADVANCED_KEY_DIGITAL_MODE;
+    g_keyboard_config.nkro = true;
+    is_init_complete = true;
+    //beep_switch = true;
 
     while (1) {
       static bool rgb_state;
@@ -247,7 +270,8 @@ int main(void)
       last_rgb_state = rgb_state;
       AdvancedKey * key = &g_keyboard_advanced_keys[57];
       //printf("%.2f,%.2f,%.2f,%.2f,%d\n",ringbuf_avg(&g_adc_ringbufs[g_analog_map[16]]), ringbuf_avg(&g_adc_ringbufs[g_analog_map[17]]), ringbuf_avg(&g_adc_ringbufs[g_analog_map[28]]), ringbuf_avg(&g_adc_ringbufs[g_analog_map[35]]), rgb_state);
-      printf("%.2f,%.2f,%.2f,%.2f,%d\n",g_keyboard_advanced_keys[16].value, g_keyboard_advanced_keys[17].value, g_keyboard_advanced_keys[28].value, g_keyboard_advanced_keys[35].value, rgb_state);
+      printf("%ld\t%.0f\t%.0f\t%.0f\t%.0f\t%.0f\t%.0f\t%.0f\n",debug1 ,g_keyboard_advanced_keys[30].raw/16, g_keyboard_advanced_keys[43].raw/16, g_keyboard_advanced_keys[58].raw/16, g_keyboard_advanced_keys[57].raw/16, g_keyboard_advanced_keys[1].raw/16, g_keyboard_advanced_keys[0].raw/16, g_keyboard_advanced_keys[16].raw/16);
+      //printf("%ld\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\n",debug1 ,g_keyboard_advanced_keys[9].raw, g_keyboard_advanced_keys[10].raw, g_keyboard_advanced_keys[11].raw, g_keyboard_advanced_keys[12].raw, g_keyboard_advanced_keys[13].raw, g_keyboard_advanced_keys[14].raw, g_keyboard_advanced_keys[15].raw);
       board_delay_ms(1);
     }
 
@@ -267,9 +291,105 @@ int main(void)
     return 0;
 }
 
+void rgb_update_callback()
+{
+  extern uint8_t g_current_config_index;
+  extern uint8_t g_current_layer;
+  /*
+  if (g_snake.running)
+  {
+    snake_move(&g_snake);
+    draw_snake(&g_snake);
+    return;
+  }
+  */
+	if(g_keyboard_led_state.caps_lock)
+  {
+	  g_rgb_colors[g_rgb_inverse_mapping[30]].r = 0xff;
+	  g_rgb_colors[g_rgb_inverse_mapping[30]].g = 0xff;
+	  g_rgb_colors[g_rgb_inverse_mapping[30]].b = 0xff;//cap lock
+	}
+	if(g_keyboard_led_state.scroll_lock)
+  {
+	  g_rgb_colors[g_rgb_inverse_mapping[26]].r = 0xff;
+	  g_rgb_colors[g_rgb_inverse_mapping[26]].g = 0xff;
+	  g_rgb_colors[g_rgb_inverse_mapping[26]].b = 0xff;//cap lock
+	}
+  if (g_current_layer == 2)
+  {
+	  g_rgb_colors[g_rgb_inverse_mapping[0]].r = 0xff;
+	  g_rgb_colors[g_rgb_inverse_mapping[0]].g = 0;
+	  g_rgb_colors[g_rgb_inverse_mapping[0]].b = 0;
+	  g_rgb_colors[g_rgb_inverse_mapping[1]].r = 0;
+	  g_rgb_colors[g_rgb_inverse_mapping[1]].g = 0;
+	  g_rgb_colors[g_rgb_inverse_mapping[1]].b = 0;
+	  g_rgb_colors[g_rgb_inverse_mapping[2]].r = 0;
+	  g_rgb_colors[g_rgb_inverse_mapping[2]].g = 0;
+	  g_rgb_colors[g_rgb_inverse_mapping[2]].b = 0;
+	  g_rgb_colors[g_rgb_inverse_mapping[3]].r = 0;
+	  g_rgb_colors[g_rgb_inverse_mapping[3]].g = 0;
+	  g_rgb_colors[g_rgb_inverse_mapping[3]].b = 0;
+	  g_rgb_colors[g_rgb_inverse_mapping[4]].r = 0;
+	  g_rgb_colors[g_rgb_inverse_mapping[4]].g = 0;
+	  g_rgb_colors[g_rgb_inverse_mapping[4]].b = 0;
+	  g_rgb_colors[g_rgb_inverse_mapping[g_current_config_index+1]].r = 0xff;
+	  g_rgb_colors[g_rgb_inverse_mapping[g_current_config_index+1]].g = 0xff;
+	  g_rgb_colors[g_rgb_inverse_mapping[g_current_config_index+1]].b = 0xff;
+    if (g_keyboard_config.nkro)
+    {
+      g_rgb_colors[g_rgb_inverse_mapping[21]].r = 0xff;
+      g_rgb_colors[g_rgb_inverse_mapping[21]].g = 0xff;
+      g_rgb_colors[g_rgb_inverse_mapping[21]].b = 0xff;
+    }
+    if (g_keyboard_config.debug)
+    {
+      g_rgb_colors[g_rgb_inverse_mapping[33]].r = 0xff;
+      g_rgb_colors[g_rgb_inverse_mapping[33]].g = 0xff;
+      g_rgb_colors[g_rgb_inverse_mapping[33]].b = 0xff;
+    }
+    if (beep_switch)
+    {
+      g_rgb_colors[g_rgb_inverse_mapping[48]].r = 0xff;
+      g_rgb_colors[g_rgb_inverse_mapping[48]].g = 0xff;
+      g_rgb_colors[g_rgb_inverse_mapping[48]].b = 0xff;
+    }
+    if (em_switch)
+    {
+      g_rgb_colors[g_rgb_inverse_mapping[47]].r = 0xff;
+      g_rgb_colors[g_rgb_inverse_mapping[47]].g = 0xff;
+      g_rgb_colors[g_rgb_inverse_mapping[47]].b = 0xff;
+    }
+    /*
+    if (low_latency_mode)
+    {
+      g_rgb_colors[g_rgb_inverse_mapping[37]].r = 0xff;
+      g_rgb_colors[g_rgb_inverse_mapping[37]].g = 0xff;
+      g_rgb_colors[g_rgb_inverse_mapping[37]].b = 0xff;
+    }
+    */
+    if (g_keyboard_config.winlock)
+    {
+      g_rgb_colors[g_rgb_inverse_mapping[58]].r = 0xff;
+      g_rgb_colors[g_rgb_inverse_mapping[58]].g = 0xff;
+      g_rgb_colors[g_rgb_inverse_mapping[58]].b = 0xff;
+    }
+  }
+}
+
+
 void keyboard_tick_task(void)
 {
     g_keyboard_tick++;
+    if (!(g_keyboard_tick%8000))
+    {
+      debug1 = debug;
+      debug = 0;
+    }
+    
+    if (!is_init_complete)
+    {
+      return;
+    }
     keyboard_task();
     if (pulse_counter)
     {
@@ -289,16 +409,17 @@ void keyboard_tick_task(void)
     }
 }
 
-
+#define SAMPLE_LENGTH 16
 void update_ringbuf()
 {
     extern uint32_t seq_buff0[1024];
     extern uint32_t seq_buff1[1024];
+    debug++;
     adc16_seq_dma_data_t *dma_data0 = (adc16_seq_dma_data_t *)seq_buff0;
     adc16_seq_dma_data_t *dma_data1 = (adc16_seq_dma_data_t *)seq_buff1;
     uint32_t adc_values[10] = {0};
 
-    for (int i = 0; i < 2; i++)
+    for (int i = 0; i < SAMPLE_LENGTH; i++)
     {
       for (size_t j = 0; j < 5; j++)
       {
@@ -308,8 +429,8 @@ void update_ringbuf()
     }
     for (size_t j = 0; j < 5; j++)
     {
-      ringbuf_push(&g_adc_ringbufs[0  + j * 8 + (g_analog_active_channel)], adc_values[0+j]>>2);
-      ringbuf_push(&g_adc_ringbufs[40 + j * 8 + (g_analog_active_channel)], adc_values[5+j]>>2);
+      ringbuf_push(&g_adc_ringbufs[0  + j * 8 + (g_analog_active_channel)], adc_values[0+j]/SAMPLE_LENGTH);
+      ringbuf_push(&g_adc_ringbufs[40 + j * 8 + (g_analog_active_channel)], adc_values[5+j]/SAMPLE_LENGTH);
     }
     g_analog_active_channel++;
     if (g_analog_active_channel >= 7)
