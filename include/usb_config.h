@@ -55,6 +55,7 @@
 /* #define CONFIG_USB_MEMCPY_DISABLE */
 
 /* ================= USB Device Stack Configuration ================ */
+#define CONFIG_USBDEV_SOF_ENABLE
 
 /* Ep0 in and out transfer buffer */
 #ifndef CONFIG_USBDEV_REQUEST_BUFFER_LEN

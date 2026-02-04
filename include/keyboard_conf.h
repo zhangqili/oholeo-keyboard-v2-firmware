@@ -12,6 +12,7 @@
 #define LAYER_NUM               5
 #define ADVANCED_KEY_NUM        69
 #define KEY_NUM                 2
+#define POLLING_RATE            8000
 //#define FIXED_POINT_EXPERIMENTAL
 #define OPTIMIZE_FOR_FLOAT_DIVISION
 //#define CONTINOUS_DEBUG
@@ -39,7 +40,7 @@
 #define DEFAULT_LOWER_DEADZONE      0.2
 #define DEFAULT_ACTIVATION_VALUE    0.5
 #define DEFAULT_DEACTIVATION_VALUE  0.49
-#define DEFAULT_ESTIMATED_RANGE     2048
+#define DEFAULT_ESTIMATED_RANGE     4096
 
 /**********/
 /* Analog */
@@ -72,8 +73,8 @@
 #define JELLY_DISTANCE          5.0f
 #define BUBBLE_DISTANCE         2.5f
 #define PORT_LOCATION           {1, -0.5}
-#define RGB_FLASH_MAX_DURATION  8000
-#define RGB_FLASH_RIPPLE_SPEED  0.003
+#define RGB_FLASH_MAX_DURATION  1000
+#define RGB_FLASH_RIPPLE_SPEED  0.03
 #define RGB_DEFAULT_MODE        RGB_MODE_LINEAR
 #define RGB_DEFAULT_SPEED       0.03
 #define RGB_DEFAULT_COLOR_HSV   {273, 78, 99}
@@ -184,7 +185,7 @@
 /* User Defines */
 /****************/
 #define PULSE 1000
-#define PULSE_LEN_MS 320
+#define PULSE_LEN_MS (40*8)
 
 enum USER_KEYCODE {
     USER_BEEP = 0,

@@ -193,7 +193,7 @@ int main(void)
     //flash_init();
 
     board_init_usb((USB_Type *)CONFIG_HPM_USBD_BASE);
-    intc_set_irq_priority(CONFIG_HPM_USBD_IRQn, 3);
+    intc_set_irq_priority(CONFIG_HPM_USBD_IRQn, 7);
     gptmr_start_counter(RINGBUF_TICK_GPTMR, RINGBUF_TICK_GPTMR_CH);
     keyboard_init();
     g_keyboard_config.enable_report = false;
@@ -414,7 +414,6 @@ void update_ringbuf()
 {
     extern uint32_t seq_buff0[1024];
     extern uint32_t seq_buff1[1024];
-    debug++;
     adc16_seq_dma_data_t *dma_data0 = (adc16_seq_dma_data_t *)seq_buff0;
     adc16_seq_dma_data_t *dma_data1 = (adc16_seq_dma_data_t *)seq_buff1;
     uint32_t adc_values[10] = {0};
