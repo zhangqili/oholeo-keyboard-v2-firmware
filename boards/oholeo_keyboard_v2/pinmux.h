@@ -31,6 +31,7 @@ void init_i2c0_pins(void);
 void init_i2c1_pins(void);
 void init_gpio_pins(void);
 void init_spi1_pins(void);
+void init_spi3_pins(void);
 void init_spi1_pins_with_gpio_as_cs(void);
 void init_gptmr0_pins(void);
 void init_butn_pins(void);

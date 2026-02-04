@@ -21,6 +21,8 @@
 #include "gptmr.h"
 #include "analog.h"
 #include "rgb.h"
+#include "ws2812.h"
+
 
 /* Static function declaration */
 static void qeiv2_ec11_init(void)
@@ -139,7 +141,10 @@ int main(void)
     gpio_set_pin_input(HPM_GPIO0, GPIO_OE_GPIOA, 9);
     gpio_disable_pin_interrupt(HPM_GPIO0, GPIO_IE_GPIOA, 9);
 
+    
     printf("hello world\n");
+    ws2812_init();
+    ws2812_flush();
     init_qeiv2_ab_pins(BOARD_BLDC_QEIV2_BASE);
 
     qeiv2_ec11_init();
@@ -163,27 +168,53 @@ int main(void)
     intc_set_irq_priority(CONFIG_HPM_USBD_IRQn, 3);
     gptmr_start_counter(RINGBUF_TICK_GPTMR, RINGBUF_TICK_GPTMR_CH);
     keyboard_init();
+    g_keyboard_config.enable_report = false;
     for (uint8_t i = 0; i < TOTAL_KEY_NUM; i++)
     {
       key_attach(keyboard_get_key(i),KEY_EVENT_DOWN,key_down_cb);
     }
     keyboard_reset_to_default();
-    board_delay_ms(100);
+    gptmr_start_counter(KEYBOARD_TICK_GPTMR, KEYBOARD_TICK_GPTMR_CH);
+    //board_delay_ms(100);
 
+    rgb_init_flash();
     filter_reset();
     analog_reset_range();
     analog_scan();
     usb_init();
-    gptmr_start_counter(KEYBOARD_TICK_GPTMR, KEYBOARD_TICK_GPTMR_CH);
     g_keyboard_config.enable_report = true;
-    beep_switch = true;
+    beep_switch = false;
     g_keyboard_advanced_keys[15].config.mode = ADVANCED_KEY_DIGITAL_MODE;
 
     while (1) {
-      //rgb_update();
+      static bool rgb_state;
+      static bool last_rgb_state;
+      static bool flush_failed;
+      rgb_update();
+      //if ((g_keyboard_tick%8000) < 7950)
+      //{
+      //  for (int i = 0; i < RGB_NUM; i++)
+      //  {
+      //    rgb_set(i, 0xFF, 0xFF, 0xFF);
+      //  }
+      //  rgb_state = true;
+      //}
+      //else
+      //{
+      //  for (int i = 0; i < RGB_NUM; i++)
+      //  {
+      //    rgb_set(i, 0, 0, 0);
+      //  }
+      //  rgb_state = false;
+      //}
+      if (rgb_state || (last_rgb_state && !rgb_state) || flush_failed)
+      {
+        flush_failed = ws2812_flush();
+      }
+      last_rgb_state = rgb_state;
+      AdvancedKey * key = &g_keyboard_advanced_keys[57];
+      printf("%.2f,%.2f,%.2f,%.2f,%d\n",ringbuf_avg(&g_adc_ringbufs[g_analog_map[16]]), ringbuf_avg(&g_adc_ringbufs[g_analog_map[17]]), ringbuf_avg(&g_adc_ringbufs[g_analog_map[28]]), ringbuf_avg(&g_adc_ringbufs[g_analog_map[35]]), rgb_state);
       board_delay_ms(1);
-      AdvancedKey * key = &g_keyboard_advanced_keys[15];
-      printf("%.2f\t%.2f\t%.2f\t%d\n", ringbuf_avg(&g_adc_ringbufs[g_analog_map[15]]), key->raw, key->value, key->key.state);
     }
 
 

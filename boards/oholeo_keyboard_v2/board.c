@@ -322,9 +322,9 @@ void board_ungate_mchtmr_at_lp_mode(void)
 
 uint32_t board_init_spi_clock(SPI_Type *ptr)
 {
-    if (ptr == HPM_SPI1) {
-        clock_add_to_group(clock_spi1, 0);
-        return clock_get_frequency(clock_spi1);
+    if (ptr == HPM_SPI3) {
+        clock_add_to_group(clock_spi3, 0);
+        return clock_get_frequency(clock_spi3);
     }
     return 0;
 }
@@ -661,7 +661,10 @@ void init_spi_pins(SPI_Type *ptr)
 {
     if (ptr == HPM_SPI1) {
         init_spi1_pins();
+    } else if (ptr == HPM_SPI3) {
+        init_spi3_pins();
     }
+    
 }
 
 void init_spi_pins_with_gpio_as_cs(SPI_Type *ptr)

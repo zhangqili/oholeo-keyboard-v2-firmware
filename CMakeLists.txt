@@ -17,6 +17,8 @@ set(RV_ABI ilp32d)
 set(CONFIG_CHERRYUSB 1)
 set(CONFIG_USB_DEVICE 1)
 set(CONFIG_USB_DEVICE_HID 1)
+set(CONFIG_HPM_SPI 1)
+set(CONFIG_DMA_MGR 1)
 
 # 查找并配置 HPM SDK
 find_package(hpm-sdk REQUIRED HINTS ${CMAKE_SOURCE_DIR}/hpm_sdk)
@@ -32,7 +34,7 @@ target_compile_options(libamp PRIVATE
 )
 
 if(CMAKE_BUILD_TYPE STREQUAL "release")
-    sdk_compile_options("-O3")
+    sdk_compile_options("-Ofast")
     sdk_compile_options("-flto=auto")
     sdk_compile_definitions("NDEBUG=1")
 else()

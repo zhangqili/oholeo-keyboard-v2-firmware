@@ -130,6 +130,12 @@ void init_spi1_pins(void)
     HPM_IOC->PAD[IOC_PAD_PA29].PAD_CTL = IOC_PAD_PAD_CTL_SR_SET(1) | IOC_PAD_PAD_CTL_SPD_SET(3);
 }
 
+void init_spi3_pins(void)
+{   
+    HPM_IOC->PAD[IOC_PAD_PA13].FUNC_CTL = IOC_PA13_FUNC_CTL_SPI3_MOSI;
+    HPM_IOC->PAD[IOC_PAD_PA13].PAD_CTL = IOC_PAD_PAD_CTL_SR_SET(1) | IOC_PAD_PAD_CTL_SPD_SET(3);
+}
+
 /* set max frequency slew rate(200M) */
 void init_spi1_pins_with_gpio_as_cs(void)
 {
