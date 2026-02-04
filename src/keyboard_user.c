@@ -16,6 +16,7 @@
 #include "encoder.h"
 #include "hpm_qeiv2_drv.h"
 #include "ws2812.h"
+#include "hpm_serial_nor.h"
 
 const Keycode g_default_keymap[LAYER_NUM][TOTAL_KEY_NUM] = {
     {
@@ -1112,27 +1113,30 @@ int flash_init(void)
     }
     return status;
 }
-
+extern hpm_serial_nor_t nor_flash_dev;
 int flash_read(uint32_t addr, uint32_t size, uint8_t *data)
 {   
-    uint32_t program_start = 512*1024 + addr;
-    uint32_t program_size = size;
-    return rom_xpi_nor_read(BOARD_APP_XPI_NOR_XPI_BASE, xpi_xfer_channel_auto, &s_xpi_nor_config, (uint32_t *)data, program_start, program_size);
+    return hpm_serial_nor_read(&nor_flash_dev, data, size, addr);
+    //uint32_t program_start = 512*1024 + addr;
+    //uint32_t program_size = size;
+    //return rom_xpi_nor_read(BOARD_APP_XPI_NOR_XPI_BASE, xpi_xfer_channel_auto, &s_xpi_nor_config, (uint32_t *)data, program_start, program_size);
 }
 
 int flash_write(uint32_t addr, uint32_t size, const uint8_t *data)
 {
-    uint32_t program_start = 512*1024 + addr;
-    uint32_t program_size = size;
-    return rom_xpi_nor_program(BOARD_APP_XPI_NOR_XPI_BASE, xpi_xfer_channel_auto, &s_xpi_nor_config, (const uint32_t *)data, program_start, program_size);
+    return hpm_serial_nor_program_blocking(&nor_flash_dev, data, size, addr);
+    //uint32_t program_start = 512*1024 + addr;
+    //uint32_t program_size = size;
+    //return rom_xpi_nor_program(BOARD_APP_XPI_NOR_XPI_BASE, xpi_xfer_channel_auto, &s_xpi_nor_config, (const uint32_t *)data, program_start, program_size);
 }
 
 int flash_erase(uint32_t addr, uint32_t size)
 {
-    uint32_t erase_start = 512*1024 + addr;
-    uint32_t erase_size = size;
-
-    return rom_xpi_nor_erase(BOARD_APP_XPI_NOR_XPI_BASE, xpi_xfer_channel_auto, &s_xpi_nor_config, erase_start, erase_size);
+    return hpm_serial_nor_erase_blocking(&nor_flash_dev, addr, size);
+    //uint32_t erase_start = 512*1024 + addr;
+    //uint32_t erase_size = size;
+    //
+    //return rom_xpi_nor_erase(BOARD_APP_XPI_NOR_XPI_BASE, xpi_xfer_channel_auto, &s_xpi_nor_config, erase_start, erase_size);
 }
 
 int led_set(uint16_t index, uint8_t r, uint8_t g, uint8_t b)

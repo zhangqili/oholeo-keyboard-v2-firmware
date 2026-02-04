@@ -14,6 +14,9 @@
 #include "hpm_trgm_drv.h"
 #include "hpm_adc16_drv.h"
 #include "hpm_qeiv2_drv.h"
+#include "hpm_spi_drv.h"
+#include "hpm_l1c_drv.h"
+#include "hpm_serial_nor.h"
 #include "keyboard.h"
 #include "usbd_user.h"
 #include "usb_config.h"
@@ -22,7 +25,8 @@
 #include "analog.h"
 #include "rgb.h"
 #include "ws2812.h"
-
+#include "hpm_serial_nor_host_port.h"
+#include "hpm_mchtmr_drv.h"
 
 /* Static function declaration */
 static void qeiv2_ec11_init(void)
@@ -78,6 +82,9 @@ static void qeiv2_ec11_init(void)
 uint32_t pulse_counter = 0;
 bool beep_switch;
 bool em_switch;
+static uint32_t timer_freq_in_hz;
+hpm_serial_nor_t nor_flash_dev = {0};
+hpm_serial_nor_info_t flash_info;
 
 static void key_down_cb(void * k)
 {
@@ -126,6 +133,11 @@ void beep_init(void)
     //pwm_disable_output(HPM_PWM0, 0); 
 }
 
+#define TRANSFER_SIZE (15360U)
+ATTR_PLACE_AT_NONCACHEABLE_WITH_ALIGNMENT(HPM_L1C_CACHELINE_SIZE) uint8_t wbuff[TRANSFER_SIZE];
+ATTR_PLACE_AT_NONCACHEABLE_WITH_ALIGNMENT(HPM_L1C_CACHELINE_SIZE) uint8_t rbuff[TRANSFER_SIZE];
+
+
 int main(void)
 {   
     board_init();
@@ -141,6 +153,27 @@ int main(void)
     gpio_set_pin_input(HPM_GPIO0, GPIO_OE_GPIOA, 9);
     gpio_disable_pin_interrupt(HPM_GPIO0, GPIO_IE_GPIOA, 9);
 
+    hpm_stat_t stat;
+    uint32_t transfer_len = 0;
+    uint32_t addr = 0;
+    uint32_t i = 0, j = 0;
+    uint64_t elapsed = 0, now;
+    double write_speed, read_speed;
+
+    serial_nor_get_board_host(&nor_flash_dev.host);
+    board_init_spi_clock(nor_flash_dev.host.host_param.param.host_base);
+    serial_nor_spi_pins_init(nor_flash_dev.host.host_param.param.host_base);
+    timer_freq_in_hz = clock_get_frequency(clock_mchtmr0);
+    stat = hpm_serial_nor_init(&nor_flash_dev, &flash_info);
+    if (hpm_serial_nor_get_info(&nor_flash_dev, &flash_info) == status_success) {
+        printf("the flash sfdp version:%d\n", flash_info.sfdp_version);
+        printf("the flash size:%d KB\n", flash_info.size_in_kbytes);
+        printf("the flash page_size:%d Byte\n", flash_info.page_size);
+        printf("the flash sector_size:%d KB\n", flash_info.sector_size_kbytes);
+        printf("the flash block_size:%d KB\n", flash_info.block_size_kbytes);
+        printf("the flash sector_erase_cmd:0x%02x\n", flash_info.sector_erase_cmd);
+        printf("the flash block_erase_cmd:0x%02x\n", flash_info.block_erase_cmd);
+    }
     
     printf("hello world\n");
     ws2812_init();
@@ -161,8 +194,8 @@ int main(void)
     
     adc_init();
     gptmr_init();
-    extern int flash_init(void);
-    flash_init();
+    //extern int flash_init(void);
+    //flash_init();
 
     board_init_usb((USB_Type *)CONFIG_HPM_USBD_BASE);
     intc_set_irq_priority(CONFIG_HPM_USBD_IRQn, 3);
@@ -183,7 +216,7 @@ int main(void)
     analog_scan();
     usb_init();
     g_keyboard_config.enable_report = true;
-    beep_switch = false;
+    beep_switch = true;
     g_keyboard_advanced_keys[15].config.mode = ADVANCED_KEY_DIGITAL_MODE;
 
     while (1) {

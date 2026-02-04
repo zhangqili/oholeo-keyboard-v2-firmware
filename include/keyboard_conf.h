@@ -45,7 +45,7 @@
 /* Analog */
 /**********/
 #define ANALOG_BUFFER_LENGTH    80
-#define RING_BUF_LEN            2
+#define RING_BUF_LEN            8
 #define CALIBRATION_LPF_ENABLE
 
 /***********/
@@ -56,9 +56,9 @@
 #define LFS_READ_SIZE       16
 #define LFS_PROG_SIZE       256
 #define LFS_BLOCK_SIZE      4096
-#define LFS_BLOCK_COUNT     128
+#define LFS_BLOCK_COUNT     4096
 #define LFS_CACHE_SIZE      256
-#define LFS_LOOKAHEAD_SIZE  16
+#define LFS_LOOKAHEAD_SIZE  128
 #define LFS_BLOCK_CYCLES    500
 #define LFS_BUFFER_SIZE     16
 
@@ -140,14 +140,14 @@
 /*******/
 #define USB_POLLING_INTERVAL_MS 1
 #define FIXED_CONTROL_ENDPOINT_SIZE 0x40
-#define VENDOR_ID 0xFEED
-#define PRODUCT_ID 22319
+#define VENDOR_ID 0x0D00
+#define PRODUCT_ID 0x0721
 #define DEVICE_VER 2
 #define FIXED_NUM_CONFIGURATIONS 1
 #define USB_ENDPOINTS_ARE_REORDERABLE
 
-#define MANUFACTURER "dwdwdw5163&Lzq12345"
-#define PRODUCT "Oholeo Keyboard"
+#define MANUFACTURER "Lzq12345"
+#define PRODUCT "Oholeo Keyboard V2"
 #define SERIAL_NUMBER "2022123456"
 
 #define RAW_ENABLE
