@@ -32,7 +32,7 @@
 #define APP_ADC16_CH_WDOG_EVENT              (1 << BOARD_APP_ADC16_CH_1)
 
 #define APP_ADC16_SEQ_START_POS              (0U)
-#define APP_ADC16_SEQ_DMA_BUFF_LEN_IN_4BYTES (2048U)
+#define APP_ADC16_SEQ_DMA_BUFF_LEN_IN_4BYTES (1024U)
 #define APP_ADC16_SEQ_IRQ_EVENT              adc16_event_seq_full_complete
 
 #ifndef ADC_SOC_NO_HW_TRIG_SRC
@@ -50,9 +50,9 @@
 #ifndef APP_ADC16_TRIG_SRC_FREQUENCY
 #define APP_ADC16_TRIG_SRC_FREQUENCY         (20000U)
 #endif
-
-ATTR_PLACE_AT_NONCACHEABLE_WITH_ALIGNMENT(ADC_SOC_DMA_ADDR_ALIGNMENT) uint32_t adc0_seq_buff[APP_ADC16_SEQ_DMA_BUFF_LEN_IN_4BYTES];
-ATTR_PLACE_AT_NONCACHEABLE_WITH_ALIGNMENT(ADC_SOC_DMA_ADDR_ALIGNMENT) uint32_t adc1_seq_buff[APP_ADC16_SEQ_DMA_BUFF_LEN_IN_4BYTES];
+#define PING_PONG_BUFFER_SIZE  (APP_ADC16_SEQ_DMA_BUFF_LEN_IN_4BYTES / 2)
+ATTR_PLACE_AT_NONCACHEABLE_WITH_ALIGNMENT(ADC_SOC_DMA_ADDR_ALIGNMENT) uint32_t adc0_seq_buff[2][APP_ADC16_SEQ_DMA_BUFF_LEN_IN_4BYTES];
+ATTR_PLACE_AT_NONCACHEABLE_WITH_ALIGNMENT(ADC_SOC_DMA_ADDR_ALIGNMENT) uint32_t adc1_seq_buff[2][APP_ADC16_SEQ_DMA_BUFF_LEN_IN_4BYTES];
 
 #ifndef APP_SAMPLE_LENGTH
 #define APP_SAMPLE_LENGTH 16
@@ -268,7 +268,7 @@ void init_sequence_config(void)
     adc16_set_seq_config(HPM_ADC0, &seq_cfg);
 
     /* Set a DMA config */
-    dma_cfg.start_addr         = (uint32_t *)core_local_mem_to_sys_address(APP_ADC16_CORE, (uint32_t)adc0_seq_buff);
+    dma_cfg.start_addr         = (uint32_t *)core_local_mem_to_sys_address(APP_ADC16_CORE, (uint32_t)adc0_seq_buff[0]);
     dma_cfg.buff_len_in_4bytes = sizeof(seq_adc_channel0)*APP_SAMPLE_LENGTH;
     dma_cfg.stop_en            = false;
     dma_cfg.stop_pos           = 0;
@@ -333,7 +333,7 @@ void init_sequence_config(void)
     adc16_set_seq_config(HPM_ADC1, &seq_cfg);
 
     /* Set a DMA config */
-    dma_cfg.start_addr         = (uint32_t *)core_local_mem_to_sys_address(APP_ADC16_CORE, (uint32_t)adc1_seq_buff);
+    dma_cfg.start_addr         = (uint32_t *)core_local_mem_to_sys_address(APP_ADC16_CORE, (uint32_t)adc1_seq_buff[0]);
     dma_cfg.buff_len_in_4bytes = sizeof(seq_adc_channel1)*APP_SAMPLE_LENGTH;
     dma_cfg.stop_en            = false;
     dma_cfg.stop_pos           = 0;
@@ -459,18 +459,41 @@ void isr_adc1(void)
 #include "gptmr.h"
 /* 头部丢弃：避开 MUX 切换后的震荡 (固定丢弃 Buffer 开头的数据) */
 #define ADC_MUX_DISCARD_COUNT_BEGIN     (5U) 
+#define ADC_MUX_DISCARD_COUNT_END       (1U) 
 /* 真正的通道数量 */
 #define REAL_CHANNEL_COUNT              (5U)
 void update_ringbuf()
 {
-    // 1. 读取当前 DMA 到底写了多少数据 (这就是上一轮 MUX 通道的有效数据量)
-    // 注意：因为我们每次都复位了 DMA，所以 SEQ_WR_ADDR 直接就是有效长度，不需要减去 last_ptr
+    static uint32_t buffer_index = 0;
+    adc16_seq_dma_data_t *dma_data0 = (adc16_seq_dma_data_t *)adc0_seq_buff[buffer_index];
+    adc16_seq_dma_data_t *dma_data1 = (adc16_seq_dma_data_t *)adc1_seq_buff[buffer_index];
     uint32_t valid_len0 = ADC16_SEQ_WR_ADDR_SEQ_WR_POINTER_GET(HPM_ADC0->SEQ_WR_ADDR);
     uint32_t valid_len1 = ADC16_SEQ_WR_ADDR_SEQ_WR_POINTER_GET(HPM_ADC1->SEQ_WR_ADDR);
+    buffer_index = !buffer_index;
+    // A. 预计算下一个通道
+    uint32_t next_channel = g_analog_active_channel + 1;
+    if (next_channel >= 7) next_channel = 0;
+    // 1. 读取当前 DMA 到底写了多少数据 (这就是上一轮 MUX 通道的有效数据量)
+    // 注意：因为我们每次都复位了 DMA，所以 SEQ_WR_ADDR 直接就是有效长度，不需要减去 last_ptr
+
+    // B. 复位 DMA 指针 (这会让写指针立即回到 Buffer[0])
+    // 注意：设置 DMA_RST 位会挂起 DMA
+    HPM_ADC0->SEQ_DMA_CFG |= ADC16_SEQ_DMA_CFG_DMA_RST_MASK;
+    HPM_ADC1->SEQ_DMA_CFG |= ADC16_SEQ_DMA_CFG_DMA_RST_MASK;
+
+    HPM_ADC0->SEQ_DMA_ADDR = core_local_mem_to_sys_address(APP_ADC16_CORE, (uint32_t)adc0_seq_buff[buffer_index]) & ADC16_SEQ_DMA_ADDR_TAR_ADDR_MASK;
+    HPM_ADC1->SEQ_DMA_ADDR = core_local_mem_to_sys_address(APP_ADC16_CORE, (uint32_t)adc1_seq_buff[buffer_index]) & ADC16_SEQ_DMA_ADDR_TAR_ADDR_MASK;
+    // C. 切换 MUX (此时 DMA 是暂停的，绝对安全)
+    analog_channel_select(next_channel);
+
+    // D. 释放 DMA (ADC 将立即开始往 Buffer[0] 写入新通道的数据)
+    // 写入这一行的瞬间，就是下一轮数据的 Time = 0
+    HPM_ADC0->SEQ_DMA_CFG &= ~ADC16_SEQ_DMA_CFG_DMA_RST_MASK;
+    HPM_ADC1->SEQ_DMA_CFG &= ~ADC16_SEQ_DMA_CFG_DMA_RST_MASK;
+    gptmr_channel_reset_count(RINGBUF_TICK_GPTMR, RINGBUF_TICK_GPTMR_CH);
+    gptmr_start_counter(RINGBUF_TICK_GPTMR, RINGBUF_TICK_GPTMR_CH);
 
     // 2. 映射缓冲区
-    adc16_seq_dma_data_t *dma_data0 = (adc16_seq_dma_data_t *)adc0_seq_buff;
-    adc16_seq_dma_data_t *dma_data1 = (adc16_seq_dma_data_t *)adc1_seq_buff;
 
     // 3. 处理上一轮的数据 (此时 g_analog_active_channel 指向的就是这批数据的归属)
     // =========================================================================
@@ -478,8 +501,9 @@ void update_ringbuf()
     uint32_t sample_counts[10] = {0};
     
     // --- 处理 ADC0 ---
-    if (valid_len0 > ADC_MUX_DISCARD_COUNT_BEGIN)
+    if (valid_len0 > (ADC_MUX_DISCARD_COUNT_BEGIN + ADC_MUX_DISCARD_COUNT_END))
     {
+        valid_len0-=ADC_MUX_DISCARD_COUNT_END;
         // 直接从 [DISCARD] 开始读，读到 [valid_len0]
         // 这里的 Buffer[0] 就是 MUX 切换瞬间采的，Buffer[50] 以后就是稳定的
         for (uint32_t i = ADC_MUX_DISCARD_COUNT_BEGIN; i < valid_len0; i++)
@@ -493,8 +517,9 @@ void update_ringbuf()
     }
 
     // --- 处理 ADC1 ---
-    if (valid_len1 > ADC_MUX_DISCARD_COUNT_BEGIN)
+    if (valid_len1 > (ADC_MUX_DISCARD_COUNT_BEGIN + ADC_MUX_DISCARD_COUNT_END))
     {
+        valid_len1-=ADC_MUX_DISCARD_COUNT_END;
         for (uint32_t i = ADC_MUX_DISCARD_COUNT_BEGIN; i < valid_len1; i++)
         {
             adc16_seq_dma_data_t* val = &dma_data1[i];
@@ -504,8 +529,6 @@ void update_ringbuf()
             sample_counts[5 + logic_ch_idx]++;
         }
     }
-    extern uint32_t debug;
-    debug += sample_counts[1];
     // --- 推入 RingBuf ---
     for (size_t j = 0; j < REAL_CHANNEL_COUNT; j++)
     {
@@ -515,27 +538,7 @@ void update_ringbuf()
             ringbuf_push(&g_adc_ringbufs[40 + j * 8 + g_analog_active_channel], sum_values[5 + j] / sample_counts[5 + j]);
     }
 
+    g_analog_active_channel = next_channel;
     // 4. 准备下一轮采样 (关键步骤：复位 -> 切换 -> 重启)
     // =========================================================================
-    
-    // A. 预计算下一个通道
-    uint32_t next_channel = g_analog_active_channel + 1;
-    if (next_channel >= 7) next_channel = 0;
-
-    // B. 复位 DMA 指针 (这会让写指针立即回到 Buffer[0])
-    // 注意：设置 DMA_RST 位会挂起 DMA
-    HPM_ADC0->SEQ_DMA_CFG |= ADC16_SEQ_DMA_CFG_DMA_RST_MASK;
-    HPM_ADC1->SEQ_DMA_CFG |= ADC16_SEQ_DMA_CFG_DMA_RST_MASK;
-
-    // C. 切换 MUX (此时 DMA 是暂停的，绝对安全)
-    analog_channel_select(next_channel);
-    g_analog_active_channel = next_channel;
-
-    // D. 释放 DMA (ADC 将立即开始往 Buffer[0] 写入新通道的数据)
-    // 写入这一行的瞬间，就是下一轮数据的 Time = 0
-    HPM_ADC0->SEQ_DMA_CFG &= ~ADC16_SEQ_DMA_CFG_DMA_RST_MASK;
-    HPM_ADC1->SEQ_DMA_CFG &= ~ADC16_SEQ_DMA_CFG_DMA_RST_MASK;
-
-    gptmr_channel_reset_count(RINGBUF_TICK_GPTMR, RINGBUF_TICK_GPTMR_CH);
-    gptmr_start_counter(RINGBUF_TICK_GPTMR, RINGBUF_TICK_GPTMR_CH);
 }

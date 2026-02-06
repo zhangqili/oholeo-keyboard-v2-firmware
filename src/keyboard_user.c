@@ -978,7 +978,7 @@ void keyboard_delay(uint32_t ms)
 
 void keyboard_reboot()
 {
-    ppor_sw_reset(HPM_PPOR, 0);
+    ppor_sw_reset(HPM_PPOR, 1);
 }
 
 #define SEL_MASK  (A_Pin | B_Pin | C_Pin | D_Pin)
@@ -1143,7 +1143,7 @@ int flash_read(uint32_t addr, uint32_t size, uint8_t *data)
 
 int flash_write(uint32_t addr, uint32_t size, const uint8_t *data)
 {
-    return hpm_serial_nor_program_blocking(&nor_flash_dev, data, size, addr);
+    return hpm_serial_nor_program_blocking(&nor_flash_dev, (uint8_t*)data, size, addr);
     //uint32_t program_start = 512*1024 + addr;
     //uint32_t program_size = size;
     //return rom_xpi_nor_program(BOARD_APP_XPI_NOR_XPI_BASE, xpi_xfer_channel_auto, &s_xpi_nor_config, (const uint32_t *)data, program_start, program_size);

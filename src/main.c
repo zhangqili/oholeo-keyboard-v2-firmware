@@ -16,6 +16,9 @@
 #include "hpm_spi_drv.h"
 #include "hpm_l1c_drv.h"
 #include "hpm_serial_nor.h"
+#include "hpm_serial_nor_host_port.h"
+#include "hpm_mchtmr_drv.h"
+
 #include "keyboard.h"
 #include "usbd_user.h"
 #include "usb_config.h"
@@ -24,8 +27,9 @@
 #include "analog.h"
 #include "rgb.h"
 #include "ws2812.h"
-#include "hpm_serial_nor_host_port.h"
-#include "hpm_mchtmr_drv.h"
+#include "pwm.h"
+#include "qei.h"
+#include "driver.h"
 
 uint32_t pulse_counter = 0;
 bool beep_switch;
@@ -57,12 +61,16 @@ int main(void)
     gpiom_set_pin_controller(HPM_GPIOM, GPIOM_ASSIGN_GPIOA, 9, gpiom_soc_gpio0);
     gpio_set_pin_input(HPM_GPIO0, GPIO_OE_GPIOA, 9);
     gpio_disable_pin_interrupt(HPM_GPIO0, GPIO_IE_GPIOA, 9);
+    HPM_IOC->PAD[IOC_PAD_PA03].FUNC_CTL = IOC_PA03_FUNC_CTL_GPIO_A_03;
+    gpiom_set_pin_controller(HPM_GPIOM, GPIOM_ASSIGN_GPIOA, 3, gpiom_soc_gpio0);
+    gpio_set_pin_input(HPM_GPIO0, GPIO_OE_GPIOA, 3);
+    gpio_disable_pin_interrupt(HPM_GPIO0, GPIO_IE_GPIOA, 3);
 
     serial_nor_get_board_host(&nor_flash_dev.host);
     board_init_spi_clock(nor_flash_dev.host.host_param.param.host_base);
     serial_nor_spi_pins_init(nor_flash_dev.host.host_param.param.host_base);
     timer_freq_in_hz = clock_get_frequency(clock_mchtmr0);
-    hpm_stat_t stat = hpm_serial_nor_init(&nor_flash_dev, &flash_info);
+    hpm_serial_nor_init(&nor_flash_dev, &flash_info);
     if (hpm_serial_nor_get_info(&nor_flash_dev, &flash_info) == status_success) {
         printf("the flash sfdp version:%d\n", flash_info.sfdp_version);
         printf("the flash size:%d KB\n", flash_info.size_in_kbytes);
@@ -166,13 +174,20 @@ int main(void)
       //  }
       //  rgb_state = false;
       //}
+      if (gpio_read_pin(HPM_GPIO0, GPIO_OE_GPIOA, 3))
+      {
+        keyboard_reboot();
+      }
+      
       if (rgb_state || (last_rgb_state && !rgb_state) || flush_failed)
       {
         flush_failed = ws2812_flush();
       }
       last_rgb_state = rgb_state;
       AdvancedKey * key = &g_keyboard_advanced_keys[1];
-      printf("%ld\t%.0f\t%.2f\t%d\n", debug1, key->raw/16.0f, key->value, key->key.report_state);
+      UNUSED(key);
+      //printf("%ld\t%.0f\t%.2f\t%d\n", debug1, key->raw/16.0f, key->value, key->key.report_state);
+      printf("%ld\t%ld\t%d\t%.0f\t%.0f\n", g_keyboard_tick, debug1, g_keyboard_report_flags.keyboard, g_keyboard_advanced_keys[43].raw/16.0f, g_keyboard_advanced_keys[33].raw/16.0f);
       //printf("%.2f,%.2f,%.2f,%.2f,%d\n",ringbuf_avg(&g_adc_ringbufs[g_analog_map[16]]), ringbuf_avg(&g_adc_ringbufs[g_analog_map[17]]), ringbuf_avg(&g_adc_ringbufs[g_analog_map[28]]), ringbuf_avg(&g_adc_ringbufs[g_analog_map[35]]), rgb_state);
       //printf("%ld\t%.0f\t%.0f\t%.0f\t%.0f\t%.0f\t%.0f\t%.0f\n",debug1 ,g_keyboard_advanced_keys[30].raw/16, g_keyboard_advanced_keys[43].raw/16, g_keyboard_advanced_keys[58].raw/16, g_keyboard_advanced_keys[57].raw/16, g_keyboard_advanced_keys[1].raw/16, g_keyboard_advanced_keys[0].raw/16, g_keyboard_advanced_keys[16].raw/16);
       //printf("%ld\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\n",debug1 ,g_keyboard_advanced_keys[9].raw, g_keyboard_advanced_keys[10].raw, g_keyboard_advanced_keys[11].raw, g_keyboard_advanced_keys[12].raw, g_keyboard_advanced_keys[13].raw, g_keyboard_advanced_keys[14].raw, g_keyboard_advanced_keys[15].raw);

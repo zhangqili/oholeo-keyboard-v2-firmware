@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.13)
 set(CMAKE_COLOR_DIAGNOSTICS ON)
 set(CMAKE_PROJECT_NAME oholeo-keyboard-v2-firmware)
 
+set(APP_NAME "oholeo-keyboard-v2")
 set(BOARD_SEARCH_PATH ${CMAKE_SOURCE_DIR}/boards)
 set(ENV{HPM_SDK_BASE} ${CMAKE_SOURCE_DIR}/hpm_sdk)
 set(ENV{GNURISCV_TOOLCHAIN_PATH} /home/xq123/Public/rv32imac_zicsr_zifencei_multilib_b_ext-linux/)

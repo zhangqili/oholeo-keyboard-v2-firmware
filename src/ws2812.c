@@ -53,12 +53,13 @@ hpm_stat_t spi_tx_trigger_dma(DMA_Type *dma_ptr, uint8_t ch_num, SPI_Type *spi_p
 
 void ws2812_spi_init(void)
 {
-    spi_timing_config_t timing_config = {0};
+    //spi_timing_config_t timing_config = {0};
     spi_format_config_t format_config = {0};
     uint32_t spi_clock_freq;
 
     // 1. 初始化引脚和时钟
     spi_clock_freq = board_init_spi_clock(WS2812_SPI);
+    (void)(spi_clock_freq);
     board_init_spi_pins(WS2812_SPI); 
     
     printf("WS2812 Init...\n");
@@ -118,7 +119,6 @@ void ws2812_init(void)
 
 void ws2812_demo(void)
 {
-    hpm_stat_t stat;
     uint32_t step = 0;
 
     while (1) {
