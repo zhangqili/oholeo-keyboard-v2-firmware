@@ -300,6 +300,8 @@ static struct usbd_endpoint digitizer_in_ep = {
     .ep_addr = DIGITIZER_EPIN_ADDR};
 #endif
 
+#include"gptmr.h"
+#include "hpm_mchtmr_drv.h"
 static void usbd_event_handler(uint8_t busid, uint8_t event)
 {
     UNUSED(busid);
@@ -330,6 +332,20 @@ static void usbd_event_handler(uint8_t busid, uint8_t event)
     case USBD_EVENT_SOF:
         extern uint32_t debug;
         debug++;
+        //void keyboard_tick_task(void);
+        //keyboard_tick_task();
+        gptmr_channel_reset_count(KEYBOARD_TICK_GPTMR, KEYBOARD_TICK_GPTMR_CH);
+        
+        extern volatile uint32_t err_cnt;
+        extern volatile uint64_t end_time;
+        extern volatile uint64_t end_time1;
+        if (end_time1 < 500)
+        {
+            err_cnt++;
+        }
+        end_time = mchtmr_get_count(HPM_MCHTMR);
+        mchtmr_init_counter(HPM_MCHTMR, 0);
+        //gptmr_start_counter(KEYBOARD_TICK_GPTMR, KEYBOARD_TICK_GPTMR_CH);
         //if (g_keyboard_config.enable_report && g_keyboard_report_flags.raw)
         //{
         //    keyboard_clear_buffer();

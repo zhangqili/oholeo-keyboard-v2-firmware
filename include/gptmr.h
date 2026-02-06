@@ -18,5 +18,6 @@
 #define RINGBUF_TICK_GPTMR_IRQ           IRQn_GPTMR1
 
 int gptmr_init(void);
+void keyboard_tick_timer_config(void);
 
 #endif /* GPTMR_H_ */
