@@ -28,11 +28,11 @@
 
 #define APP_ADC16_CLOCK_BUS  BOARD_APP_ADC16_CLK_BUS
 #define __ADC16_USE_SW_TRIG
-#define APP_ADC16_CH_SAMPLE_CYCLE            (20U)
+#define APP_ADC16_CH_SAMPLE_CYCLE            (21U)
 #define APP_ADC16_CH_WDOG_EVENT              (1 << BOARD_APP_ADC16_CH_1)
 
 #define APP_ADC16_SEQ_START_POS              (0U)
-#define APP_ADC16_SEQ_DMA_BUFF_LEN_IN_4BYTES (1024U)
+#define APP_ADC16_SEQ_DMA_BUFF_LEN_IN_4BYTES (2048U)
 #define APP_ADC16_SEQ_IRQ_EVENT              adc16_event_seq_full_complete
 
 #ifndef ADC_SOC_NO_HW_TRIG_SRC
@@ -51,8 +51,8 @@
 #define APP_ADC16_TRIG_SRC_FREQUENCY         (20000U)
 #endif
 
-ATTR_PLACE_AT_NONCACHEABLE_WITH_ALIGNMENT(ADC_SOC_DMA_ADDR_ALIGNMENT) uint32_t seq_buff0[APP_ADC16_SEQ_DMA_BUFF_LEN_IN_4BYTES];
-ATTR_PLACE_AT_NONCACHEABLE_WITH_ALIGNMENT(ADC_SOC_DMA_ADDR_ALIGNMENT) uint32_t seq_buff1[APP_ADC16_SEQ_DMA_BUFF_LEN_IN_4BYTES];
+ATTR_PLACE_AT_NONCACHEABLE_WITH_ALIGNMENT(ADC_SOC_DMA_ADDR_ALIGNMENT) uint32_t adc0_seq_buff[APP_ADC16_SEQ_DMA_BUFF_LEN_IN_4BYTES];
+ATTR_PLACE_AT_NONCACHEABLE_WITH_ALIGNMENT(ADC_SOC_DMA_ADDR_ALIGNMENT) uint32_t adc1_seq_buff[APP_ADC16_SEQ_DMA_BUFF_LEN_IN_4BYTES];
 
 #ifndef APP_SAMPLE_LENGTH
 #define APP_SAMPLE_LENGTH 16
@@ -95,38 +95,6 @@ hpm_stat_t process_seq_data(uint32_t *buff, int32_t start_pos, uint32_t len)
 }
 
 #ifndef ADC_SOC_NO_HW_TRIG_SRC
-
-#if defined(HPMSOC_HAS_HPMSDK_PWMV2)
-void init_trigger_source(PWMV2_Type *ptr)
-{
-    int mot_clock_freq;
-
-    mot_clock_freq =  clock_get_frequency(BOARD_APP_ADC16_HW_TRIG_SRC_CLK_NAME);
-
-    pwmv2_shadow_register_unlock(ptr);
-    pwmv2_set_reload_update_time(ptr, pwm_counter_0, pwm_reload_update_on_reload);
-    pwmv2_set_shadow_val(ptr, PWMV2_SHADOW_INDEX(0), (mot_clock_freq/APP_ADC16_TRIG_SRC_FREQUENCY) - 1, 0, false);
-    pwmv2_set_shadow_val(ptr, PWMV2_SHADOW_INDEX(1), ((mot_clock_freq/APP_ADC16_TRIG_SRC_FREQUENCY) - 1) >> 1, 0, false);
-    pwmv2_select_cmp_source(ptr, 16, cmp_value_from_shadow_val, PWMV2_SHADOW_INDEX(1));
-    pwmv2_shadow_register_lock(ptr);
-
-    pwmv2_counter_select_data_offset_from_shadow_value(ptr, pwm_counter_0, PWMV2_SHADOW_INDEX(0));
-    pwmv2_counter_burst_disable(ptr, pwm_counter_0);
-
-    pwmv2_set_trigout_cmp_index(ptr, APP_ADC16_HW_TRGM_SRC_OUT_CH, 16);
-    pwmv2_enable_counter(ptr, pwm_counter_0);
-}
-
-void stop_trigger_source(PWMV2_Type *ptr)
-{
-    pwmv2_disable_counter(ptr, pwm_counter_0);
-}
-
-void start_trigger_source(PWMV2_Type *ptr)
-{
-    pwmv2_enable_counter(ptr, pwm_counter_0);
-}
-#endif
 
 #if defined(HPMSOC_HAS_HPMSDK_PWM)
 void init_trigger_source(PWM_Type *ptr)
@@ -300,7 +268,7 @@ void init_sequence_config(void)
     adc16_set_seq_config(HPM_ADC0, &seq_cfg);
 
     /* Set a DMA config */
-    dma_cfg.start_addr         = (uint32_t *)core_local_mem_to_sys_address(APP_ADC16_CORE, (uint32_t)seq_buff0);
+    dma_cfg.start_addr         = (uint32_t *)core_local_mem_to_sys_address(APP_ADC16_CORE, (uint32_t)adc0_seq_buff);
     dma_cfg.buff_len_in_4bytes = sizeof(seq_adc_channel0)*APP_SAMPLE_LENGTH;
     dma_cfg.stop_en            = false;
     dma_cfg.stop_pos           = 0;
@@ -365,7 +333,7 @@ void init_sequence_config(void)
     adc16_set_seq_config(HPM_ADC1, &seq_cfg);
 
     /* Set a DMA config */
-    dma_cfg.start_addr         = (uint32_t *)core_local_mem_to_sys_address(APP_ADC16_CORE, (uint32_t)seq_buff1);
+    dma_cfg.start_addr         = (uint32_t *)core_local_mem_to_sys_address(APP_ADC16_CORE, (uint32_t)adc1_seq_buff);
     dma_cfg.buff_len_in_4bytes = sizeof(seq_adc_channel1)*APP_SAMPLE_LENGTH;
     dma_cfg.stop_en            = false;
     dma_cfg.stop_pos           = 0;
@@ -384,67 +352,6 @@ void init_sequence_config(void)
     init_trigger_source(APP_ADC16_HW_TRIG_SRC);
 #endif
     }
-}
-
-void sequence_handler(void)
-{
-#if defined(ADC_SOC_NO_HW_TRIG_SRC) || defined(__ADC16_USE_SW_TRIG)
-    /* SW trigger */
-    adc16_trigger_seq_by_sw(HPM_ADC0);
-#endif
-
-    //while (seq_complete_flag == 0) {
-//
-    //}
-
-#if !defined(ADC_SOC_NO_HW_TRIG_SRC) && !defined(__ADC16_USE_SW_TRIG)
-    adc16_seq_disable_hw_trigger(HPM_ADC0);
-    /* Stop the trigger source output */
-    stop_trigger_source(APP_ADC16_HW_TRIG_SRC);
-#endif
-    /* Process data */
-    process_seq_data(seq_buff0, APP_ADC16_SEQ_START_POS, sizeof(seq_adc_channel0));
-
-    /* Clear the flag */
-    seq_complete_flag = 0;
-
-#if !defined(ADC_SOC_NO_HW_TRIG_SRC) && !defined(__ADC16_USE_SW_TRIG)
-    /* Start the trigger source output */
-    start_trigger_source(APP_ADC16_HW_TRIG_SRC);
-
-    adc16_seq_enable_hw_trigger(HPM_ADC0);
-#endif
-}
-
-
-void sequence_handler1(void)
-{
-#if defined(ADC_SOC_NO_HW_TRIG_SRC) || defined(__ADC16_USE_SW_TRIG)
-    /* SW trigger */
-    adc16_trigger_seq_by_sw(HPM_ADC1);
-#endif
-
-    //while (seq_complete_flag == 0) {
-    //    
-    //}
-
-#if !defined(ADC_SOC_NO_HW_TRIG_SRC) && !defined(__ADC16_USE_SW_TRIG)
-    adc16_seq_disable_hw_trigger(HPM_ADC1);
-    /* Stop the trigger source output */
-    stop_trigger_source(APP_ADC16_HW_TRIG_SRC);
-#endif
-    /* Process data */
-    process_seq_data(seq_buff1, APP_ADC16_SEQ_START_POS, sizeof(seq_adc_channel1)*APP_SAMPLE_LENGTH);
-
-    /* Clear the flag */
-    seq_complete_flag = 0;
-
-#if !defined(ADC_SOC_NO_HW_TRIG_SRC) && !defined(__ADC16_USE_SW_TRIG)
-    /* Start the trigger source output */
-    start_trigger_source(APP_ADC16_HW_TRIG_SRC);
-
-    adc16_seq_enable_hw_trigger(HPM_ADC1);
-#endif
 }
 
 bool abort_handler(uint8_t conv_mode)
@@ -548,4 +455,87 @@ void isr_adc1(void)
     //    adc16_disable_interrupts(HPM_ADC1, APP_ADC16_CH_WDOG_EVENT);
     //    res_out_of_thr_flag = ADC16_INT_STS_WDOG_GET(status) & APP_ADC16_CH_WDOG_EVENT;
     //}
+}
+#include "gptmr.h"
+/* 头部丢弃：避开 MUX 切换后的震荡 (固定丢弃 Buffer 开头的数据) */
+#define ADC_MUX_DISCARD_COUNT_BEGIN     (5U) 
+/* 真正的通道数量 */
+#define REAL_CHANNEL_COUNT              (5U)
+void update_ringbuf()
+{
+    // 1. 读取当前 DMA 到底写了多少数据 (这就是上一轮 MUX 通道的有效数据量)
+    // 注意：因为我们每次都复位了 DMA，所以 SEQ_WR_ADDR 直接就是有效长度，不需要减去 last_ptr
+    uint32_t valid_len0 = ADC16_SEQ_WR_ADDR_SEQ_WR_POINTER_GET(HPM_ADC0->SEQ_WR_ADDR);
+    uint32_t valid_len1 = ADC16_SEQ_WR_ADDR_SEQ_WR_POINTER_GET(HPM_ADC1->SEQ_WR_ADDR);
+
+    // 2. 映射缓冲区
+    adc16_seq_dma_data_t *dma_data0 = (adc16_seq_dma_data_t *)adc0_seq_buff;
+    adc16_seq_dma_data_t *dma_data1 = (adc16_seq_dma_data_t *)adc1_seq_buff;
+
+    // 3. 处理上一轮的数据 (此时 g_analog_active_channel 指向的就是这批数据的归属)
+    // =========================================================================
+    uint32_t sum_values[10] = {0};
+    uint32_t sample_counts[10] = {0};
+    
+    // --- 处理 ADC0 ---
+    if (valid_len0 > ADC_MUX_DISCARD_COUNT_BEGIN)
+    {
+        // 直接从 [DISCARD] 开始读，读到 [valid_len0]
+        // 这里的 Buffer[0] 就是 MUX 切换瞬间采的，Buffer[50] 以后就是稳定的
+        for (uint32_t i = ADC_MUX_DISCARD_COUNT_BEGIN; i < valid_len0; i++)
+        {
+            adc16_seq_dma_data_t* val = &dma_data0[i];
+            
+            uint32_t logic_ch_idx = val->seq_num;
+            sum_values[0 + logic_ch_idx] += val->result;
+            sample_counts[0 + logic_ch_idx]++;
+        }
+    }
+
+    // --- 处理 ADC1 ---
+    if (valid_len1 > ADC_MUX_DISCARD_COUNT_BEGIN)
+    {
+        for (uint32_t i = ADC_MUX_DISCARD_COUNT_BEGIN; i < valid_len1; i++)
+        {
+            adc16_seq_dma_data_t* val = &dma_data1[i];
+
+            uint32_t logic_ch_idx = val->seq_num;
+            sum_values[5 + logic_ch_idx] += val->result;
+            sample_counts[5 + logic_ch_idx]++;
+        }
+    }
+    extern uint32_t debug;
+    debug += sample_counts[1];
+    // --- 推入 RingBuf ---
+    for (size_t j = 0; j < REAL_CHANNEL_COUNT; j++)
+    {
+        if (sample_counts[0 + j] > 0) 
+            ringbuf_push(&g_adc_ringbufs[0 + j * 8 + g_analog_active_channel], sum_values[0 + j] / sample_counts[0 + j]);
+        if (sample_counts[5 + j] > 0)
+            ringbuf_push(&g_adc_ringbufs[40 + j * 8 + g_analog_active_channel], sum_values[5 + j] / sample_counts[5 + j]);
+    }
+
+    // 4. 准备下一轮采样 (关键步骤：复位 -> 切换 -> 重启)
+    // =========================================================================
+    
+    // A. 预计算下一个通道
+    uint32_t next_channel = g_analog_active_channel + 1;
+    if (next_channel >= 7) next_channel = 0;
+
+    // B. 复位 DMA 指针 (这会让写指针立即回到 Buffer[0])
+    // 注意：设置 DMA_RST 位会挂起 DMA
+    HPM_ADC0->SEQ_DMA_CFG |= ADC16_SEQ_DMA_CFG_DMA_RST_MASK;
+    HPM_ADC1->SEQ_DMA_CFG |= ADC16_SEQ_DMA_CFG_DMA_RST_MASK;
+
+    // C. 切换 MUX (此时 DMA 是暂停的，绝对安全)
+    analog_channel_select(next_channel);
+    g_analog_active_channel = next_channel;
+
+    // D. 释放 DMA (ADC 将立即开始往 Buffer[0] 写入新通道的数据)
+    // 写入这一行的瞬间，就是下一轮数据的 Time = 0
+    HPM_ADC0->SEQ_DMA_CFG &= ~ADC16_SEQ_DMA_CFG_DMA_RST_MASK;
+    HPM_ADC1->SEQ_DMA_CFG &= ~ADC16_SEQ_DMA_CFG_DMA_RST_MASK;
+
+    gptmr_channel_reset_count(RINGBUF_TICK_GPTMR, RINGBUF_TICK_GPTMR_CH);
+    gptmr_start_counter(RINGBUF_TICK_GPTMR, RINGBUF_TICK_GPTMR_CH);
 }

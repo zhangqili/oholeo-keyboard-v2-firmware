@@ -328,8 +328,8 @@ static void usbd_event_handler(uint8_t busid, uint8_t event)
     case USBD_EVENT_CLR_REMOTE_WAKEUP:
         break;
     case USBD_EVENT_SOF:
-        extern uint32_t debug;
-        debug++;
+        //extern uint32_t debug;
+        //debug++;
         //if (g_keyboard_config.enable_report && g_keyboard_report_flags.raw)
         //{
         //    keyboard_clear_buffer();

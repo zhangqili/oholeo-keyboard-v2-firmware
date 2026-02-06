@@ -978,7 +978,7 @@ void keyboard_delay(uint32_t ms)
 
 void keyboard_reboot()
 {
-    ppor_sw_reset(HPM_PPOR, 10);
+    ppor_sw_reset(HPM_PPOR, 0);
 }
 
 #define SEL_MASK  (A_Pin | B_Pin | C_Pin | D_Pin)

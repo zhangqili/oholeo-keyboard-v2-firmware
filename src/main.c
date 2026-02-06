@@ -171,11 +171,12 @@ int main(void)
         flush_failed = ws2812_flush();
       }
       last_rgb_state = rgb_state;
-      AdvancedKey * key = &g_keyboard_advanced_keys[57];
+      AdvancedKey * key = &g_keyboard_advanced_keys[1];
+      printf("%ld\t%.0f\t%.2f\t%d\n", debug1, key->raw/16.0f, key->value, key->key.report_state);
       //printf("%.2f,%.2f,%.2f,%.2f,%d\n",ringbuf_avg(&g_adc_ringbufs[g_analog_map[16]]), ringbuf_avg(&g_adc_ringbufs[g_analog_map[17]]), ringbuf_avg(&g_adc_ringbufs[g_analog_map[28]]), ringbuf_avg(&g_adc_ringbufs[g_analog_map[35]]), rgb_state);
-      printf("%ld\t%.0f\t%.0f\t%.0f\t%.0f\t%.0f\t%.0f\t%.0f\n",debug1 ,g_keyboard_advanced_keys[30].raw/16, g_keyboard_advanced_keys[43].raw/16, g_keyboard_advanced_keys[58].raw/16, g_keyboard_advanced_keys[57].raw/16, g_keyboard_advanced_keys[1].raw/16, g_keyboard_advanced_keys[0].raw/16, g_keyboard_advanced_keys[16].raw/16);
+      //printf("%ld\t%.0f\t%.0f\t%.0f\t%.0f\t%.0f\t%.0f\t%.0f\n",debug1 ,g_keyboard_advanced_keys[30].raw/16, g_keyboard_advanced_keys[43].raw/16, g_keyboard_advanced_keys[58].raw/16, g_keyboard_advanced_keys[57].raw/16, g_keyboard_advanced_keys[1].raw/16, g_keyboard_advanced_keys[0].raw/16, g_keyboard_advanced_keys[16].raw/16);
       //printf("%ld\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\n",debug1 ,g_keyboard_advanced_keys[9].raw, g_keyboard_advanced_keys[10].raw, g_keyboard_advanced_keys[11].raw, g_keyboard_advanced_keys[12].raw, g_keyboard_advanced_keys[13].raw, g_keyboard_advanced_keys[14].raw, g_keyboard_advanced_keys[15].raw);
-      board_delay_ms(1);
+      //board_delay_ms(1);
     }
 
 
@@ -310,34 +311,4 @@ void keyboard_tick_task(void)
     {
         pwm_stop_counter(HPM_PWM0);
     }
-}
-
-#define SAMPLE_LENGTH 16
-void update_ringbuf()
-{
-    extern uint32_t seq_buff0[1024];
-    extern uint32_t seq_buff1[1024];
-    adc16_seq_dma_data_t *dma_data0 = (adc16_seq_dma_data_t *)seq_buff0;
-    adc16_seq_dma_data_t *dma_data1 = (adc16_seq_dma_data_t *)seq_buff1;
-    uint32_t adc_values[10] = {0};
-
-    for (int i = 0; i < SAMPLE_LENGTH; i++)
-    {
-      for (size_t j = 0; j < 5; j++)
-      {
-          adc_values[0+j] += dma_data0[i*5+j].result;
-          adc_values[5+j] += dma_data1[i*5+j].result;
-      }
-    }
-    for (size_t j = 0; j < 5; j++)
-    {
-      ringbuf_push(&g_adc_ringbufs[0  + j * 8 + (g_analog_active_channel)], adc_values[0+j]/SAMPLE_LENGTH);
-      ringbuf_push(&g_adc_ringbufs[40 + j * 8 + (g_analog_active_channel)], adc_values[5+j]/SAMPLE_LENGTH);
-    }
-    g_analog_active_channel++;
-    if (g_analog_active_channel >= 7)
-    {
-      g_analog_active_channel = 0;
-    }
-    analog_channel_select(g_analog_active_channel);
 }
