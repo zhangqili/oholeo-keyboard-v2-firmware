@@ -46,7 +46,7 @@
 /* Analog */
 /**********/
 #define ANALOG_BUFFER_LENGTH    80
-#define RING_BUF_LEN            4
+#define RING_BUF_LEN            16
 #define CALIBRATION_LPF_ENABLE
 
 /***********/

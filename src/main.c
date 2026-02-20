@@ -18,6 +18,7 @@
 #include "hpm_serial_nor.h"
 #include "hpm_serial_nor_host_port.h"
 #include "hpm_mchtmr_drv.h"
+#include "rvbacktrace.h"
 
 #include "keyboard.h"
 #include "usbd_user.h"
@@ -187,9 +188,10 @@ int main(void)
     AdvancedKey * key = &g_keyboard_advanced_keys[1];
     UNUSED(key);
     //printf("%ld\t%.0f\t%.2f\t%d\n", debug1, key->raw/16.0f, key->value, key->key.report_state);
-    printf("%ld\t%ld\t%d\t%ld\t%.0f\t%.0f\t%ld\t%ld\t%ld\n", g_keyboard_tick, debug1, err_cnt, g_keyboard_report_flags.keyboard, g_keyboard_advanced_keys[43].raw/16.0f, g_keyboard_advanced_keys[33].raw/16.0f, (uint32_t)start_time, (uint32_t)end_time1, (uint32_t)end_time);
+    //printf("%ld\t%ld\t%d\t%ld\t%.0f\t%.0f\t%ld\t%ld\t%ld\n", g_keyboard_tick, debug1, err_cnt, g_keyboard_report_flags.keyboard, g_keyboard_advanced_keys[6].raw/16.0f, g_keyboard_advanced_keys[23].raw/16.0f, (uint32_t)start_time, (uint32_t)end_time1, (uint32_t)end_time);
     //printf("%.2f,%.2f,%.2f,%.2f,%d\n",ringbuf_avg(&g_adc_ringbufs[g_analog_map[16]]), ringbuf_avg(&g_adc_ringbufs[g_analog_map[17]]), ringbuf_avg(&g_adc_ringbufs[g_analog_map[28]]), ringbuf_avg(&g_adc_ringbufs[g_analog_map[35]]), rgb_state);
-    //printf("%ld\t%.0f\t%.0f\t%.0f\t%.0f\t%.0f\t%.0f\t%.0f\n",debug1 ,g_keyboard_advanced_keys[30].raw/16, g_keyboard_advanced_keys[43].raw/16, g_keyboard_advanced_keys[58].raw/16, g_keyboard_advanced_keys[57].raw/16, g_keyboard_advanced_keys[1].raw/16, g_keyboard_advanced_keys[0].raw/16, g_keyboard_advanced_keys[16].raw/16);
+    printf("%ld\t%.0f\t%.0f\t%.0f\t%.0f\t%.0f\t%.0f\t%.0f\n",debug1 ,g_keyboard_advanced_keys[6].raw/16, g_keyboard_advanced_keys[23].raw/16, g_keyboard_advanced_keys[22].raw/16, g_keyboard_advanced_keys[24].raw/16, g_keyboard_advanced_keys[1].raw/16, g_keyboard_advanced_keys[0].raw/16, g_keyboard_advanced_keys[16].raw/16);
+    //printf("%ld\t%.0f\t%.0f\t%.0f\t%.0f\t%.0f\t%.0f\t%.0f\n",debug1 ,g_keyboard_advanced_keys[44].raw/16, g_keyboard_advanced_keys[45].raw/16, g_keyboard_advanced_keys[46].raw/16, g_keyboard_advanced_keys[47].raw/16, g_keyboard_advanced_keys[1].raw/16, g_keyboard_advanced_keys[0].raw/16, g_keyboard_advanced_keys[16].raw/16);
     //printf("%ld\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\n",debug1 ,g_keyboard_advanced_keys[9].raw, g_keyboard_advanced_keys[10].raw, g_keyboard_advanced_keys[11].raw, g_keyboard_advanced_keys[12].raw, g_keyboard_advanced_keys[13].raw, g_keyboard_advanced_keys[14].raw, g_keyboard_advanced_keys[15].raw);
     //board_delay_ms(1);
   }
@@ -198,7 +200,7 @@ int main(void)
 
 void rgb_update_callback()
 {
-  extern uint8_t g_current_config_index;
+  extern uint8_t g_current_profile_index;
   extern uint8_t g_current_layer;
   /*
   if (g_snake.running)
@@ -237,9 +239,9 @@ void rgb_update_callback()
 	  g_rgb_colors[g_rgb_inverse_mapping[4]].r = 0;
 	  g_rgb_colors[g_rgb_inverse_mapping[4]].g = 0;
 	  g_rgb_colors[g_rgb_inverse_mapping[4]].b = 0;
-	  g_rgb_colors[g_rgb_inverse_mapping[g_current_config_index+1]].r = 0xff;
-	  g_rgb_colors[g_rgb_inverse_mapping[g_current_config_index+1]].g = 0xff;
-	  g_rgb_colors[g_rgb_inverse_mapping[g_current_config_index+1]].b = 0xff;
+	  g_rgb_colors[g_rgb_inverse_mapping[g_current_profile_index+1]].r = 0xff;
+	  g_rgb_colors[g_rgb_inverse_mapping[g_current_profile_index+1]].g = 0xff;
+	  g_rgb_colors[g_rgb_inverse_mapping[g_current_profile_index+1]].b = 0xff;
     if (g_keyboard_config.nkro)
     {
       g_rgb_colors[g_rgb_inverse_mapping[21]].r = 0xff;
@@ -314,4 +316,12 @@ void keyboard_tick_task(void)
       pwm_stop_counter(HPM_PWM0);
   }
   end_time1 = mchtmr_get_count(HPM_MCHTMR);
+}
+
+long exception_handler(long cause, long epc)
+{
+    rvbacktrace_trap(&cause, &epc);
+    while (1) {
+    }
+    return epc;
 }

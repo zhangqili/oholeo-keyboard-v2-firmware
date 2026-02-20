@@ -330,8 +330,6 @@ static void usbd_event_handler(uint8_t busid, uint8_t event)
     case USBD_EVENT_CLR_REMOTE_WAKEUP:
         break;
     case USBD_EVENT_SOF:
-        extern uint32_t debug;
-        debug++;
         //void keyboard_tick_task(void);
         //keyboard_tick_task();
         gptmr_channel_reset_count(KEYBOARD_TICK_GPTMR, KEYBOARD_TICK_GPTMR_CH);

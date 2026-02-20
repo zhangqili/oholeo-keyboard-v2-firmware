@@ -537,6 +537,8 @@ void update_ringbuf()
         if (sample_counts[5 + j] > 0)
             ringbuf_push(&g_adc_ringbufs[40 + j * 8 + g_analog_active_channel], sum_values[5 + j] / sample_counts[5 + j]);
     }
+    extern uint32_t debug;
+    debug+=sample_counts[1];
 
     g_analog_active_channel = next_channel;
     // 4. 准备下一轮采样 (关键步骤：复位 -> 切换 -> 重启)
