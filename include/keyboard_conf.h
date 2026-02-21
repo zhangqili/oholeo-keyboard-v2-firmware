@@ -14,7 +14,7 @@
 #define KEY_NUM                 2
 #define POLLING_RATE            8000
 //#define FIXED_POINT_EXPERIMENTAL
-#define OPTIMIZE_FOR_FLOAT_DIVISION
+#define OPTIMIZE_FOR_DIVISION
 //#define CONTINOUS_DEBUG
 #define DEBUG_INTERVAL 1
 #define DYNAMICKEY_ENABLE
