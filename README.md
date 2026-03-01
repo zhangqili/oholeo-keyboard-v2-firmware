@@ -29,7 +29,9 @@
 - PyYAML模块```pip install pyyaml```
 - CMake
 - Ninja
-- HPMicro提供的工具链<https://gitee.com/hpmicro/riscv-gnu-toolchain>或<https://github.com/zhangqili/oholeo-keyboard-v2-firmware>
+- HPMicro提供的工具链\
+(Windows:<https://gitee.com/hpmicro/sdk_env>
+Linux:<https://github.com/riscv-collab/riscv-gnu-toolchain>)
 - HPM Manufacturing Tool<https://github.com/hpmicro/hpm_manufacturing_tool>
 - 将该仓库克隆到本地并在该仓库文件夹打开命令行终端
 ```PowerShell
