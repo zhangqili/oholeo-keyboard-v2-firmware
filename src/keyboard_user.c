@@ -23,12 +23,12 @@
 
 const Keycode g_default_keymap[LAYER_NUM][TOTAL_KEY_NUM] = {
     {
-        KEY_ESC/*0*/,           KEY_1/*1*/,     KEY_2/*2*/,     KEY_3/*3*/,     KEY_4/*4*/,     KEY_5/*5*/,     KEY_6/*6*/,     KEY_7/*7*/,     KEY_8/*8*/,     KEY_9/*9*/,     KEY_0/*10*/,        KEY_MINUS/*11*/,        KEY_EQUAL/*12*/,        KEY_BACKSPACE/*13*/,    KEY_BACKSPACE/*14*/,    KEY_GRAVE/*15*/,
+        KEY_ESC/*0*/,           KEY_1/*1*/,     KEY_2/*2*/,     KEY_3/*3*/,     KEY_4/*4*/,     KEY_5/*5*/,     KEY_6/*6*/,     KEY_7/*7*/,     KEY_8/*8*/,     KEY_9/*9*/,     KEY_0/*10*/,        KEY_MINUS/*11*/,        KEY_EQUAL/*12*/,        KEY_BACKSPACE/*13*/,    KEY_GRAVE/*14*/,    KEY_BACKSPACE/*15*/,
         KEY_TAB/*16*/,          KEY_Q/*17*/,    KEY_W/*18*/,    KEY_E/*19*/,    KEY_R/*20*/,    KEY_T/*21*/,    KEY_Y/*22*/,    KEY_U/*23*/,    KEY_I/*24*/,    KEY_O/*25*/,    KEY_P/*26*/,        KEY_LEFT_BRACE/*27*/,   KEY_RIGHT_BRACE/*28*/,  KEY_BACKSLASH/*29*/,
         KEY_CAPS_LOCK/*30*/,    KEY_A/*31*/,    KEY_S/*32*/,    KEY_D/*33*/,    KEY_F/*34*/,    KEY_G/*35*/,    KEY_H/*36*/,    KEY_J/*37*/,    KEY_K/*38*/,    KEY_L/*39*/,    KEY_SEMICOLON/*40*/,KEY_APOSTROPHE/*41*/,   KEY_ENTER/*42*/,
         KEY_LEFT_SHIFT<<8/*43*/,KEY_Z/*44*/,    KEY_X/*45*/,    KEY_C/*46*/,    KEY_V/*47*/,    KEY_B/*48*/,    KEY_N/*49*/,    KEY_M/*50*/,    KEY_COMMA/*51*/,KEY_DOT/*52*/,  KEY_SLASH/*53*/,    KEY_RIGHT_SHIFT<<8/*54*/,KEY_UP_ARROW/*55*/,    KEY_DELETE/*56*/,
         KEY_LEFT_CTRL<<8/*57*/, KEY_LEFT_GUI<<8/*58*/, KEY_LEFT_ALT<<8/*59*/, KEY_SPACEBAR/*60*/, KEY_RIGHT_ALT<<8/*61*/, LAYER(LAYER_MOMENTARY, 1)/*62*/, KEY_LEFT_ARROW/*63*/, KEY_DOWN_ARROW/*64*/, KEY_RIGHT_ARROW/*65*/,
-        KEY_SPACEBAR/*66*/,     KEY_SPACEBAR/*67*/,     KEY_SPACEBAR/*68*/,  KEYCODE(CONSUMER_COLLECTION, CONSUMER_AUDIO_VOL_UP)/*69*/, KEYCODE(CONSUMER_COLLECTION, CONSUMER_AUDIO_VOL_DOWN)/*70*/,
+        KEY_SPACEBAR/*66*/,     KEY_SPACEBAR/*67*/,     KEY_SPACEBAR/*68*/,     KEY_ESC/*69*/,  KEYCODE(CONSUMER_COLLECTION, CONSUMER_AUDIO_VOL_UP)/*70*/, KEYCODE(CONSUMER_COLLECTION, CONSUMER_AUDIO_VOL_DOWN)/*71*/,
     },
     {
         KEY_GRAVE,              KEY_F1,         KEY_F2,         KEY_F3,         KEY_F4,         KEY_F5,         KEY_F6,         KEY_F7,         KEY_F8,         KEY_F9,         KEY_F10,            KEY_F11,            KEY_F12,                KEY_TRANSPARENT,    KEY_TRANSPARENT,    KEY_TRANSPARENT,
@@ -36,7 +36,7 @@ const Keycode g_default_keymap[LAYER_NUM][TOTAL_KEY_NUM] = {
         KEY_TRANSPARENT,        KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,    KEY_TRANSPARENT,    KEY_TRANSPARENT,
         KEY_TRANSPARENT,        KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,    KEY_INSERT,         KEY_PAGE_UP,            LAYER(LAYER_MOMENTARY, 2),
         KEY_TRANSPARENT,        KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_HOME,       KEY_PAGE_DOWN,  KEY_END,
-        KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,
+        KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,
     },
     {
         KEYBOARD_OPERATION | (KEYBOARD_BOOTLOADER << 8),  KEYBOARD_OPERATION | (KEYBOARD_PROFILE0 << 8),                     KEYBOARD_OPERATION | (KEYBOARD_PROFILE1 << 8), KEYBOARD_OPERATION | (KEYBOARD_PROFILE2 << 8),                     KEYBOARD_OPERATION | (KEYBOARD_PROFILE3 << 8),       KEY_TRANSPARENT,                                                KEY_TRANSPARENT,               KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,                                KEY_TRANSPARENT,    KEYBOARD_OPERATION | (KEYBOARD_RGB_BRIGHTNESS_DOWN << 8),    KEYBOARD_OPERATION | (KEYBOARD_RGB_BRIGHTNESS_UP << 8),    KEYBOARD_OPERATION | (KEYBOARD_RESET_TO_DEFAULT << 8),KEY_TRANSPARENT,KEYBOARD_OPERATION | (KEYBOARD_RESET_TO_DEFAULT << 8),
@@ -44,7 +44,7 @@ const Keycode g_default_keymap[LAYER_NUM][TOTAL_KEY_NUM] = {
         KEY_USER | (USER_SNAKE_LAUNCH << 8),              KEY_TRANSPARENT,                                                  KEYBOARD_OPERATION | (KEYBOARD_SAVE << 8),    KEYBOARD_CONFIG(KEYBOARD_CONFIG_DEBUG, KEYBOARD_CONFIG_TOGGLE),   KEYBOARD_OPERATION | (KEYBOARD_FACTORY_RESET << 8), KEY_TRANSPARENT,                                                KEY_TRANSPARENT,               KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_USER | (USER_TOGGLE_LOW_LATENCY_MODE << 8), KEY_TRANSPARENT,    KEY_TRANSPARENT,    KEY_TRANSPARENT,
         KEY_TRANSPARENT,                                  KEY_TRANSPARENT,                                                  KEY_TRANSPARENT,                              KEY_TRANSPARENT,                                                  KEY_USER | (USER_EM << 8),                          KEY_USER | (USER_BEEP << 8),                                    KEY_USER | (USER_RESET << 8),  KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,                                KEY_TRANSPARENT,    KEY_TRANSPARENT,    KEY_TRANSPARENT,        KEY_TRANSPARENT,
         KEY_TRANSPARENT,                                  KEYBOARD_CONFIG(KEYBOARD_CONFIG_WINLOCK, KEYBOARD_CONFIG_TOGGLE), KEY_TRANSPARENT,                              KEY_TRANSPARENT,                                                  KEY_TRANSPARENT,                                    KEY_TRANSPARENT,                                                KEY_TRANSPARENT,               KEY_TRANSPARENT,KEY_TRANSPARENT,
-        KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,
+        KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,
     }
 
 };
@@ -52,8 +52,8 @@ const Keycode g_default_keymap[LAYER_NUM][TOTAL_KEY_NUM] = {
 Encoder g_encoders[ENCODER_NUM] =
 {
     {
-        .cw_id = 69,
-        .ccw_id = 70
+        .cw_id = 70,
+        .ccw_id = 71
     }
 };
 
@@ -72,7 +72,7 @@ const uint16_t g_rgb_inverse_mapping[TOTAL_KEY_NUM] =
     52,51,50,49,48,47,46,45,44,43,42,41,40,39,
     0, 27,28,29,30,31,32,33,34,35,36,37,38,
     1, 26,25,24,23,22,21,20,19,18,17,16,15,14,
-    2, 3, 4, 6, 9, 10, 11, 12, 13, 5, 7, 8
+    2, 3, 4, 6, 9, 10, 11, 12, 13, 5, 7, 8, 53
 };
 #endif
 const RGBLocation g_rgb_locations[RGB_NUM]={
@@ -1172,25 +1172,8 @@ int led_flush(void)
 
 void keyboard_scan()
 {
+    keyboard_key_update(&g_keyboard_keys[0], !gpio_read_pin(HPM_GPIO0, GPIO_OE_GPIOA, 9));
     encoder_input(0, (int32_t)qeiv2_get_phase_cnt(BOARD_BLDC_QEIV2_BASE)/4);
     //keyboard_key_update(&g_keyboard_advanced_keys[0], );
 }
 
-
-AnalogRawValue advanced_key_read_raw(AdvancedKey *advanced_key)
-{
-    AnalogRawValue raw = ringbuf_avg(&g_adc_ringbufs[g_analog_map[advanced_key->key.id]]);
-    if (advanced_key->config.mode == ADVANCED_KEY_DIGITAL_MODE)
-    {
-        switch (advanced_key->key.id)
-        {
-        case 15:
-            raw = !gpio_read_pin(HPM_GPIO0, GPIO_OE_GPIOA, 9);;
-            break;
-        default:
-            raw = 0;
-            break;
-        }
-    }
-    return raw;
-}
