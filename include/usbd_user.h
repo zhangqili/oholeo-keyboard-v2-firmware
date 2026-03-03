@@ -37,6 +37,10 @@ int usb_send_shared_ep(uint8_t *buffer, uint8_t size);
 int usb_send_keyboard(uint8_t *buffer, uint8_t size);
 int usb_send_raw(uint8_t *buffer, uint8_t size);
 int usb_send_midi(uint8_t *buffer, uint8_t size);
+int usb_send_mouse(uint8_t *buffer, uint8_t size);
+int usb_send_joystick(uint8_t *buffer, uint8_t size);
+int usb_send_digitizer(uint8_t *buffer, uint8_t size);
+int usb_send_console(uint8_t *buffer, uint8_t size);
 
 #ifdef __cplusplus
 }
