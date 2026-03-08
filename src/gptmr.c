@@ -24,12 +24,12 @@ void keyboard_tick_timer_config(void)
     printf("ring_buf_gptmr_freq%ld\n", gptmr_freq);
 
     config.reload = 0xFFFFFFFF;
-    config.cmp[0] = 7500;
+    config.cmp[0] = 4200;
     //config.enable_opmode = true;
     gptmr_channel_config(KEYBOARD_TICK_GPTMR, KEYBOARD_TICK_GPTMR_CH, &config, true);
     //gptmr_channel_enable_opmode(KEYBOARD_TICK_GPTMR, KEYBOARD_TICK_GPTMR_CH);
     gptmr_enable_irq(KEYBOARD_TICK_GPTMR, GPTMR_CH_CMP_IRQ_MASK(KEYBOARD_TICK_GPTMR_CH, 0));
-    intc_m_enable_irq_with_priority(KEYBOARD_TICK_GPTMR_IRQ, 2);
+    intc_m_enable_irq_with_priority(KEYBOARD_TICK_GPTMR_IRQ, 1);
 }
 
 static void keyboard_tick_timer_config1(void)
@@ -48,7 +48,7 @@ static void keyboard_tick_timer_config1(void)
     gptmr_channel_config(KEYBOARD_TICK_GPTMR, KEYBOARD_TICK_GPTMR_CH, &config, false);
     //gptmr_channel_enable_opmode(KEYBOARD_TICK_GPTMR, KEYBOARD_TICK_GPTMR_CH);
     gptmr_enable_irq(KEYBOARD_TICK_GPTMR, GPTMR_CH_CMP_IRQ_MASK(KEYBOARD_TICK_GPTMR_CH, 0));
-    intc_m_enable_irq_with_priority(KEYBOARD_TICK_GPTMR_IRQ, 2);
+    intc_m_enable_irq_with_priority(KEYBOARD_TICK_GPTMR_IRQ, 1);
 }
 
 static void ring_buf_timer_config(void)
@@ -61,12 +61,12 @@ static void ring_buf_timer_config(void)
     gptmr_channel_get_default_config(RINGBUF_TICK_GPTMR, &config);
     printf("ring_buf_gptmr_freq%ld\n", gptmr_freq);
 
-    config.reload = gptmr_freq / 40000 - 1;
+    config.reload = gptmr_freq / 87500 - 1;
     config.enable_opmode = true;
     gptmr_channel_config(RINGBUF_TICK_GPTMR, RINGBUF_TICK_GPTMR_CH, &config, false);
     gptmr_channel_enable_opmode(RINGBUF_TICK_GPTMR, RINGBUF_TICK_GPTMR_CH);
     gptmr_enable_irq(RINGBUF_TICK_GPTMR, GPTMR_CH_RLD_IRQ_MASK(RINGBUF_TICK_GPTMR_CH));
-    intc_m_enable_irq_with_priority(RINGBUF_TICK_GPTMR_IRQ, 1);
+    intc_m_enable_irq_with_priority(RINGBUF_TICK_GPTMR_IRQ, 2);
 }
 
 

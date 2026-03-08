@@ -458,8 +458,8 @@ void isr_adc1(void)
 }
 #include "gptmr.h"
 /* 头部丢弃：避开 MUX 切换后的震荡 (固定丢弃 Buffer 开头的数据) */
-#define ADC_MUX_DISCARD_COUNT_BEGIN     (5U) 
-#define ADC_MUX_DISCARD_COUNT_END       (1U) 
+#define ADC_MUX_DISCARD_COUNT_BEGIN     (4U) 
+#define ADC_MUX_DISCARD_COUNT_END       (0U) 
 /* 真正的通道数量 */
 #define REAL_CHANNEL_COUNT              (5U)
 void update_ringbuf()
