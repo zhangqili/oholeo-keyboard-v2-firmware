@@ -118,9 +118,7 @@ int main(void)
   //board_delay_ms(100);
   gptmr_start_counter(KEYBOARD_TICK_GPTMR, KEYBOARD_TICK_GPTMR_CH);
   rgb_init_flash();
-  filter_reset();
-  analog_reset_range();
-  analog_scan();
+  analog_calibrate();
   
   if (ringbuf_avg(&g_adc_ringbufs[g_analog_map[0]])< 8192 || ringbuf_avg(&g_adc_ringbufs[g_analog_map[0]]) > (65536 - 8192))
   {
@@ -159,7 +157,7 @@ int main(void)
     static bool rgb_state;
     static bool last_rgb_state;
     static bool flush_failed;
-    rgb_update();
+    keyboard_process();
     //if ((g_keyboard_tick%8000) < 7950)
     //{
     //  for (int i = 0; i < RGB_NUM; i++)
