@@ -46,9 +46,9 @@ volatile uint64_t end_time1;
 volatile uint64_t end_time;
 volatile uint32_t err_cnt;
 
-static void key_down_cb(void * k)
+void keyboard_key_event_down_callback_user(Key*key)
 {
-  UNUSED(k);
+  UNUSED(key);
   pulse_counter=PULSE_LEN_MS;
 }
 volatile bool is_init_complete = false;
@@ -110,10 +110,10 @@ int main(void)
   gptmr_start_counter(RINGBUF_TICK_GPTMR, RINGBUF_TICK_GPTMR_CH);
   keyboard_init();
   g_keyboard_config.enable_report = false;
-  for (uint8_t i = 0; i < TOTAL_KEY_NUM; i++)
-  {
-    key_attach(keyboard_get_key(i),KEY_EVENT_DOWN,key_down_cb);
-  }
+  //for (uint8_t i = 0; i < TOTAL_KEY_NUM; i++)
+  //{
+  //  key_attach(keyboard_get_key(i),KEY_EVENT_DOWN,key_down_cb);
+  //}
   //keyboard_reset_to_default();
   //board_delay_ms(100);
   gptmr_start_counter(KEYBOARD_TICK_GPTMR, KEYBOARD_TICK_GPTMR_CH);

@@ -42,7 +42,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "release")
     sdk_compile_options("-flto=auto")
     sdk_compile_definitions("NDEBUG=1")
 else()
-    sdk_compile_options("-O0", "-g")
+    sdk_compile_options("-O0" "-g3")
     sdk_compile_definitions("DEBUG=1")
 endif()
 

@@ -29,6 +29,7 @@
 #define DEBOUNCE_PRESS_EAGER    1
 #define DEBOUNCE_RELEASE        0
 #define DEBOUNCE_RELEASE_EAGER  1
+//#define KEYBOARD_OPERATION_POLLING
 
 /********************/
 /* Keyboard Default */
@@ -47,7 +48,7 @@
 /* Analog */
 /**********/
 #define ANALOG_BUFFER_LENGTH    80
-#define RING_BUF_LEN            16
+#define RING_BUF_LEN            8
 #define CALIBRATION_LPF_ENABLE
 
 /***********/
@@ -83,7 +84,6 @@
 #define RGB_TOP                 -0.5f
 #define RGB_RIGHT               14.5f
 #define RGB_BOTTOM              4.5f
-#define RGB_USE_LIST_EXPERIMENTAL
 #define RGB_GAMMA_ENABLE
 #define RGB_GAMMA               2.2f
 #define RGB_CUSTOM_INVERSE_MAPPING
@@ -99,7 +99,6 @@
 #define RGB_MODE_USE_FADING_DIAMOND_RIPPLE  1
 #define RGB_MODE_USE_JELLY                  1
 #define RGB_MODE_USE_BUBBLE                 1
-#define RGB_ARGUMENT_BUFFER_LENGTH          32
 #define RGB_ARGUMENT_LIST_BUFFER_LENGTH     256
 /************/
 /* Joystick */

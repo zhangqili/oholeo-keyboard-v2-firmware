@@ -24,7 +24,7 @@ void keyboard_tick_timer_config(void)
     printf("ring_buf_gptmr_freq%ld\n", gptmr_freq);
 
     config.reload = 0xFFFFFFFF;
-    config.cmp[0] = 4200;
+    config.cmp[0] = 2400;
     //config.enable_opmode = true;
     gptmr_channel_config(KEYBOARD_TICK_GPTMR, KEYBOARD_TICK_GPTMR_CH, &config, true);
     //gptmr_channel_enable_opmode(KEYBOARD_TICK_GPTMR, KEYBOARD_TICK_GPTMR_CH);
@@ -94,6 +94,7 @@ void ring_buf_isr(void)
 {
     if (gptmr_check_status(RINGBUF_TICK_GPTMR, GPTMR_CH_RLD_STAT_MASK(RINGBUF_TICK_GPTMR_CH))) {
         gptmr_clear_status(RINGBUF_TICK_GPTMR, GPTMR_CH_RLD_STAT_MASK(RINGBUF_TICK_GPTMR_CH));
+        gptmr_stop_counter(RINGBUF_TICK_GPTMR, RINGBUF_TICK_GPTMR_CH);
         void update_ringbuf(void);
         update_ringbuf();
     }
