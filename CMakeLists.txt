@@ -9,7 +9,7 @@ set(ENV{GNURISCV_TOOLCHAIN_PATH} /home/xq123/Public/rv32imac_zicsr_zifencei_mult
 #set(ENV{HPM_SDK_TOOLCHAIN_VARIANT} nds-gcc)
 set(BOARD_SEARCH_PATH ${CMAKE_SOURCE_DIR}/boards)
 set(CMAKE_BUILD_TYPE release)
-set(HPM_BUILD_TYPE "flash_xip")
+set(HPM_BUILD_TYPE "flash_uf2")
 set(BOARD oholeo_keyboard_v2)
 set(RV_ARCH rv32imafdcv_zicsr_zifencei)
 set(RV_ABI ilp32d)
@@ -59,4 +59,14 @@ target_link_libraries(app PRIVATE
     libamp
     m
 )
+add_custom_target(generate_uf2 ALL
+    COMMAND python3 ${CMAKE_SOURCE_DIR}/bootloader/uf2conv.py
+        -f 0x0A4D5048
+        -b 0x80020000
+        -c
+        -o ${CMAKE_CURRENT_BINARY_DIR}/${APP_NAME}.uf2
+        ${CMAKE_CURRENT_BINARY_DIR}/output/${APP_NAME}.bin
+    VERBATIM
+)
 
+add_dependencies(generate_uf2 ${APP_ELF_NAME})

@@ -1,6 +1,6 @@
 # Oholeo Keyboard V2
 
-硬件工程: <>
+硬件工程: <https://oshwhub.com/blockripper/zuo-yi-64-ci-zhou-jian-pan-_-dai-feng-ming-qi-v2>
 
 配置器: <https://github.com/zhangqili/EMIKeyboardConfigurator>
 
@@ -24,7 +24,7 @@
 + 使用蜂鸣器播放MIDI音符
 
 
-### 前置条件
+## 前置条件
 - Python
 - PyYAML模块```pip install pyyaml```
 - CMake
@@ -39,13 +39,39 @@ git clone --recurse-submodules https://github.com/zhangqili/oholeo-keyboard-v2-f
 cd oholeo-keyboard-v2-firmware
 ```
 
-### 修改CMakeLists.txt
-将该行设为工具链所在目录
+## 编译与烧录Bootloader
+
+### 修改工具链路径
+打开bootloader/CMakeLists.txt，将该行设为工具链所在目录
+```cmake
+set(ENV{GNURISCV_TOOLCHAIN_PATH} /home/xq123/Public/rv32imac_zicsr_zifencei_multilib_b_ext-linux/)
+```
+
+### 编译
+进入bootloader目录，编译bootloader固件
+```PowerShell
+cd bootloader
+mkdir build
+cmake ..
+make -j
+```
+
+### 烧录
+按住BOOT键上电或上电后按住BOOT键时点按一下NRST键进入MCU自带Bootloder。\
+如果已烧录键盘固件，键盘正常运行时点按BOOT键进入MCU自带Bootloder。
+
+在HPM Manufacturing Tool界面，芯片选择HPM5300，类型选择UART，选择对应的串口，选择编译得到的二进制文件oholeo-keyboard-v2-bootloader.bin，连接并烧写。
+
+## 编译与烧录键盘固件
+
+### 修改工具链路径
+打开项目根目录中的CMakeLists.txt，将该行设为工具链所在目录
 ```cmake
 set(ENV{GNURISCV_TOOLCHAIN_PATH} /home/xq123/Public/rv32imac_zicsr_zifencei_multilib_b_ext-linux/)
 ```
 
 ### 运行编译命令
+在终端界面回到项目根目录，运行以下命令
 ```PowerShell
 mkdir build
 cd build
@@ -55,21 +81,24 @@ ninja
 
 如果编译成功，会看到类似以下的结果，编译生成的二进制文件oholeo-keyboard-v2.bin位于output文件夹
 ```
-[120/120] Linking C executable output/oholeo-keyboard-v2.elf
+[121/122] Linking C executable output/oholeo-keyboard-v2.elf
 Memory region         Used Size  Region Size  %age Used
-           FLASH:      404564 B         1 MB     38.58%
-             ILM:        5208 B       128 KB      3.97%
-             DLM:      101904 B     130304 B     78.20%
+           FLASH:      396204 B       896 KB     43.18%
+             ILM:        5320 B       128 KB      4.06%
+             DLM:       99856 B     130304 B     76.63%
         AHB_SRAM:          0 GB        32 KB      0.00%
-ninja  10.43s user 1.47s system 211% cpu 5.631 total
+[122/122] cd /home/xq123/Documents/git/oholeo-keyboard-v2...o-keyboard-v2-firmware/build/output/oholeo-keyboard-v2.bin
+Converting to uf2, output size: 793600, start address: 0x80020000
+Wrote 793600 bytes to /home/xq123/Documents/git/oholeo-keyboard-v2-firmware/build/oholeo-keyboard-v2.uf2
 ```
 
-## 烧录
-未烧录固件时，按住BOOT键上电或上电后按住BOOT键时点按一下NRST键进入Bootloder。\
-烧录固件后，键盘正常运行时按住BOOT键进入Bootloader。\
-将USB转UART连接至对应的TX和RX孔。\
-在HPM Manufacturing Tool界面，芯片选择HPM5300，类型选择UART，选择对应的串口，选择编译得到的二进制文件，连接并烧写。
+### 烧录
 
+将键盘上电，没有烧录固件时会自动进入bootloader。\
+如果已经烧录了该键盘固件，在键盘上电时按住旋钮或按住Esc键进入bootloader。\
+如果已经烧录了其他固件，短接旋钮的两个焊盘上电可进入bootloader。
+
+如果成功进入bootloader，此时资源管理器会显示HPMBOOT磁盘，将编译得到的oholeo-keyboard-v2.uf2复制到该磁盘即可完成烧录。
 
 ## 使用说明
 
@@ -79,6 +108,7 @@ ninja  10.43s user 1.47s system 211% cpu 5.631 total
 |---|---|
 |`FN`|清除所有数据，恢复出厂设置并重启|
 |`Backspace`|恢复默认配置并重启|
+|`Esc`|进入Bootloader|
 
 
 ### 默认快捷键
@@ -101,3 +131,4 @@ ninja  10.43s user 1.47s system 211% cpu 5.631 total
 |`FN`+`DEL`+`3`|使用配置文件2|
 |`FN`+`DEL`+`4`|使用配置文件3|
 |`FN`+`DEL`+`Win`|切换锁定Win键|
+|`FN`+`DEL`+`按下旋钮`|进入Bootloader|

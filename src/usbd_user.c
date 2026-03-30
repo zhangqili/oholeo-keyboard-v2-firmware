@@ -424,12 +424,18 @@ static void usbd_event_handler(uint8_t busid, uint8_t event)
         
         extern volatile uint32_t err_cnt;
         extern volatile uint64_t end_time;
+        extern volatile uint32_t end_time_cnt;
         extern volatile uint64_t end_time1;
         if (end_time1 < 500)
         {
             err_cnt++;
         }
-        end_time = mchtmr_get_count(HPM_MCHTMR);
+        if (g_keyboard_tick > 80000)
+        {
+        end_time += mchtmr_get_count(HPM_MCHTMR);
+        end_time_cnt++;
+        }
+        
         mchtmr_init_counter(HPM_MCHTMR, 0);
         //gptmr_start_counter(KEYBOARD_TICK_GPTMR, KEYBOARD_TICK_GPTMR_CH);
         //if (g_keyboard_config.enable_report && g_keyboard_report_flags.raw)

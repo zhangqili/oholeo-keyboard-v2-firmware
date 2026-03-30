@@ -20,6 +20,7 @@
 #include "hpm_ppor_drv.h"
 #include "hpm_romapi.h"
 #include "hpm_interrupt.h"
+#include "hpm_pdgo_drv.h"
 
 const Keycode g_default_keymap[LAYER_NUM][TOTAL_KEY_NUM] = {
     {
@@ -44,7 +45,7 @@ const Keycode g_default_keymap[LAYER_NUM][TOTAL_KEY_NUM] = {
         KEY_USER | (USER_SNAKE_LAUNCH << 8),              KEY_TRANSPARENT,                                                  KEYBOARD_OPERATION | (KEYBOARD_SAVE << 8),    KEYBOARD_CONFIG(KEYBOARD_CONFIG_DEBUG, KEYBOARD_CONFIG_TOGGLE),   KEYBOARD_OPERATION | (KEYBOARD_FACTORY_RESET << 8), KEY_TRANSPARENT,                                                KEY_TRANSPARENT,               KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_USER | (USER_TOGGLE_LOW_LATENCY_MODE << 8), KEY_TRANSPARENT,    KEY_TRANSPARENT,    KEY_TRANSPARENT,
         KEY_TRANSPARENT,                                  KEY_TRANSPARENT,                                                  KEY_TRANSPARENT,                              KEYBOARD_OPERATION | (KEYBOARD_CALIBRATE << 8),                   KEY_USER | (USER_EM << 8),                          KEY_USER | (USER_BEEP << 8),                                    KEY_USER | (USER_RESET << 8),  KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,                                KEY_TRANSPARENT,    KEY_TRANSPARENT,    KEY_TRANSPARENT,        KEY_TRANSPARENT,
         KEY_TRANSPARENT,                                  KEYBOARD_CONFIG(KEYBOARD_CONFIG_WINLOCK, KEYBOARD_CONFIG_TOGGLE), KEY_TRANSPARENT,                              KEY_TRANSPARENT,                                                  KEY_TRANSPARENT,                                    KEY_TRANSPARENT,                                                KEY_TRANSPARENT,               KEY_TRANSPARENT,KEY_TRANSPARENT,
-        KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,
+        KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEYBOARD_OPERATION | (KEYBOARD_BOOTLOADER << 8),KEY_TRANSPARENT,KEY_TRANSPARENT,
     }
 
 };
@@ -990,26 +991,12 @@ void analog_channel_select(uint8_t x)
     gpio_write_pin(HPM_FGPIO, GPIO_DO_GPIOY, 2, x & 0x04);
 }
 
+#define BOOT_MAGIC_VALUE 0x0D000721
+
 void keyboard_jump_to_bootloader(void)
 {
-    disable_global_irq(CSR_MSTATUS_MIE_MASK);
-    clock_disable(clock_usb0); 
-    
-    /* 也可以尝试禁用 USB 中断源，防止残留中断 */
-    intc_disable_irq(HPM_PLIC_TARGET_M_MODE, IRQn_USB0);
-
-    /* ------------------------------------------------------------------
-     * 第四步：清理 Cache
-     * ------------------------------------------------------------------ */
-    if (l1c_dc_is_enabled()) {
-        /* 将 Cache 中的脏数据写回 RAM，并标记无效 */
-        l1c_dc_flush_all(); 
-        l1c_dc_disable();
-    }
-    if (l1c_ic_is_enabled()) {
-        l1c_ic_disable();
-    }
-    rom_enter_bootloader(NULL);
+    pdgo_write_gpr(HPM_PDGO, 0, BOOT_MAGIC_VALUE);
+    keyboard_reboot();
     while (1)
     {
     }

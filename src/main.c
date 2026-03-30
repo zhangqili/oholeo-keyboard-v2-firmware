@@ -42,8 +42,14 @@ hpm_serial_nor_info_t flash_info;
 uint32_t debug;
 uint32_t debug1;
 volatile uint64_t start_time;
+volatile double start_time_avg;
+volatile uint32_t start_time_cnt;
 volatile uint64_t end_time1;
+volatile double end_time1_avg;
+volatile uint32_t end_time1_cnt;
 volatile uint64_t end_time;
+volatile double end_time_avg;
+volatile uint32_t end_time_cnt;
 volatile uint32_t err_cnt;
 
 void keyboard_key_event_down_callback_user(Key*key)
@@ -189,7 +195,7 @@ int main(void)
     //printf("%ld\t%.0f\t%.2f\t%d\n", debug1, key->raw/16.0f, key->value, key->key.report_state);
     //printf("%ld\t%ld\t%d\t%ld\t%.0f\t%.0f\t%ld\t%ld\t%ld\n", g_keyboard_tick, debug1, err_cnt, g_keyboard_report_flags.keyboard, g_keyboard_advanced_keys[6].raw/16.0f, g_keyboard_advanced_keys[23].raw/16.0f, (uint32_t)start_time, (uint32_t)end_time1, (uint32_t)end_time);
     //printf("%.2f,%.2f,%.2f,%.2f,%d\n",ringbuf_avg(&g_adc_ringbufs[g_analog_map[16]]), ringbuf_avg(&g_adc_ringbufs[g_analog_map[17]]), ringbuf_avg(&g_adc_ringbufs[g_analog_map[28]]), ringbuf_avg(&g_adc_ringbufs[g_analog_map[35]]), rgb_state);
-    log_info("%ld\t%ld\t%ld\t%ld\t%.0f\t%.0f\t%.0f\t%.0f\t%.0f\t%.0f\t%.0f",debug1, (uint32_t)start_time, (uint32_t)end_time1, (uint32_t)end_time ,g_keyboard_advanced_keys[6].raw/8, g_keyboard_advanced_keys[23].raw/8, g_keyboard_advanced_keys[22].raw, g_keyboard_advanced_keys[24].raw, g_keyboard_advanced_keys[1].raw, g_keyboard_advanced_keys[0].raw, g_keyboard_advanced_keys[16].raw);
+    log_info("%ld\t%lf\t%lf\t%lf\t%.0f\t%.0f\t%.0f\t%.0f\t%.0f\t%.0f\t%.0f",debug1, (double)(start_time/(double)start_time_cnt), (double)(end_time1/(double)end_time1_cnt), (double)(end_time/(double)end_time_cnt) ,g_keyboard_advanced_keys[6].raw/8, g_keyboard_advanced_keys[23].raw/8, g_keyboard_advanced_keys[22].raw, g_keyboard_advanced_keys[24].raw, g_keyboard_advanced_keys[1].raw, g_keyboard_advanced_keys[0].raw, g_keyboard_advanced_keys[16].raw);
     //printf("%ld\t%.0f\t%.0f\t%.0f\t%.0f\t%.0f\t%.0f\t%.0f\n",debug1 ,g_keyboard_advanced_keys[44].raw/16, g_keyboard_advanced_keys[45].raw/16, g_keyboard_advanced_keys[46].raw/16, g_keyboard_advanced_keys[47].raw/16, g_keyboard_advanced_keys[1].raw/16, g_keyboard_advanced_keys[0].raw/16, g_keyboard_advanced_keys[16].raw/16);
     //printf("%ld\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\n",debug1 ,g_keyboard_advanced_keys[9].raw, g_keyboard_advanced_keys[10].raw, g_keyboard_advanced_keys[11].raw, g_keyboard_advanced_keys[12].raw, g_keyboard_advanced_keys[13].raw, g_keyboard_advanced_keys[14].raw, g_keyboard_advanced_keys[15].raw);
     //board_delay_ms(1);
@@ -282,17 +288,20 @@ void rgb_update_callback()
   }
 }
 
-
 void keyboard_tick_task(void)
-{ 
-  start_time = mchtmr_get_count(HPM_MCHTMR);
+{
+  if (g_keyboard_tick > 80000)
+  {
+    start_time += mchtmr_get_count(HPM_MCHTMR);
+    start_time_cnt++;
+  }
   g_keyboard_tick++;
-  if (!(g_keyboard_tick%8000))
+  if (!(g_keyboard_tick % 8000))
   {
     debug1 = debug;
     debug = 0;
   }
-  
+
   if (!is_init_complete)
   {
     return;
@@ -307,14 +316,18 @@ void keyboard_tick_task(void)
     }
     if (em_switch)
     {
-      //LL_GPIO_SetOutputPin(GPIOA, LL_GPIO_PIN_15);
+      // LL_GPIO_SetOutputPin(GPIOA, LL_GPIO_PIN_15);
     }
   }
   else
   {
-      pwm_stop_counter(HPM_PWM0);
+    pwm_stop_counter(HPM_PWM0);
   }
-  end_time1 = mchtmr_get_count(HPM_MCHTMR);
+  if (g_keyboard_tick > 80000)
+  {
+    end_time1 += mchtmr_get_count(HPM_MCHTMR);
+    end_time1_cnt++;
+  }
 }
 
 long exception_handler(long cause, long epc)
