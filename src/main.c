@@ -154,7 +154,7 @@ int main(void)
   }
   keyboard_tick_timer_config();
   gptmr_start_counter(KEYBOARD_TICK_GPTMR, KEYBOARD_TICK_GPTMR_CH);
-  usb_init();
+  usb_init(0, CONFIG_HPM_USBD_BASE);
   g_keyboard_config.enable_report = true;
   g_keyboard_config.nkro = true;
   is_init_complete = true;
@@ -336,4 +336,48 @@ long exception_handler(long cause, long epc)
     while (1) {
     }
     return epc;
+}
+
+void usbd_event_handler_user(uint8_t busid, uint8_t event)
+{
+    UNUSED(busid);
+    switch (event)
+    {
+    case USBD_EVENT_RESET:
+        break;
+    case USBD_EVENT_CONNECTED:
+        break;
+    case USBD_EVENT_DISCONNECTED:
+        break;
+    case USBD_EVENT_RESUME:
+        break;
+    case USBD_EVENT_SUSPEND:
+        break;
+    case USBD_EVENT_CONFIGURED:
+        break;
+    case USBD_EVENT_SET_REMOTE_WAKEUP:
+        break;
+    case USBD_EVENT_CLR_REMOTE_WAKEUP:
+        break;
+    case USBD_EVENT_SOF:
+        gptmr_channel_reset_count(KEYBOARD_TICK_GPTMR, KEYBOARD_TICK_GPTMR_CH);
+        
+        extern volatile uint32_t err_cnt;
+        extern volatile uint64_t end_time;
+        extern volatile uint32_t end_time_cnt;
+        extern volatile uint64_t end_time1;
+        if (end_time1 < 500)
+        {
+            err_cnt++;
+        }
+        if (g_keyboard_tick > 80000)
+        {
+        end_time += mchtmr_get_count(HPM_MCHTMR);
+        end_time_cnt++;
+        }
+        mchtmr_init_counter(HPM_MCHTMR, 0);
+        break;
+    default:
+        break;
+    }
 }
