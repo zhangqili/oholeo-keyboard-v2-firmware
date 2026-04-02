@@ -164,6 +164,7 @@
 //#define DIGITIZER_SHARED_EP
 //#define PROGRAMMABLE_BUTTON_ENABLE
 #define MIDI_ENABLE
+//#define MSC_ENABLE
 //#define LIGHTING_ENABLE
 
 /*********/

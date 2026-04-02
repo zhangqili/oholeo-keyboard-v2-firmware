@@ -32,6 +32,7 @@
 #include "qei.h"
 #include "driver.h"
 #include "log.h"
+//#include "usbd_msc.h"
 
 uint32_t pulse_counter = 0;
 bool beep_switch;
@@ -199,6 +200,7 @@ int main(void)
     //printf("%ld\t%.0f\t%.0f\t%.0f\t%.0f\t%.0f\t%.0f\t%.0f\n",debug1 ,g_keyboard_advanced_keys[44].raw/16, g_keyboard_advanced_keys[45].raw/16, g_keyboard_advanced_keys[46].raw/16, g_keyboard_advanced_keys[47].raw/16, g_keyboard_advanced_keys[1].raw/16, g_keyboard_advanced_keys[0].raw/16, g_keyboard_advanced_keys[16].raw/16);
     //printf("%ld\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\n",debug1 ,g_keyboard_advanced_keys[9].raw, g_keyboard_advanced_keys[10].raw, g_keyboard_advanced_keys[11].raw, g_keyboard_advanced_keys[12].raw, g_keyboard_advanced_keys[13].raw, g_keyboard_advanced_keys[14].raw, g_keyboard_advanced_keys[15].raw);
     //board_delay_ms(1);
+    //usbd_msc_polling(0);
   }
   return 0;
 }

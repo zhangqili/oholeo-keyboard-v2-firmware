@@ -95,7 +95,7 @@
 #endif
 
 #ifndef CONFIG_USBDEV_MSC_MAX_BUFSIZE
-#define CONFIG_USBDEV_MSC_MAX_BUFSIZE 512
+#define CONFIG_USBDEV_MSC_MAX_BUFSIZE 4096
 #endif
 
 #ifndef CONFIG_USBDEV_MSC_MANUFACTURER_STRING
@@ -111,7 +111,7 @@
 #endif
 
 /* move msc read & write from isr to while(1), you should call usbd_msc_polling in while(1) */
-/* #define CONFIG_USBDEV_MSC_POLLING */
+#define CONFIG_USBDEV_MSC_POLLING
 
 /* move msc read & write from isr to thread */
 /* #define CONFIG_USBDEV_MSC_THREAD */
