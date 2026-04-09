@@ -32,6 +32,7 @@
 #include "qei.h"
 #include "driver.h"
 #include "log.h"
+#include "usbd_mtp.h"
 //#include "usbd_msc.h"
 
 uint32_t pulse_counter = 0;
@@ -201,6 +202,9 @@ int main(void)
     //printf("%ld\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\n",debug1 ,g_keyboard_advanced_keys[9].raw, g_keyboard_advanced_keys[10].raw, g_keyboard_advanced_keys[11].raw, g_keyboard_advanced_keys[12].raw, g_keyboard_advanced_keys[13].raw, g_keyboard_advanced_keys[14].raw, g_keyboard_advanced_keys[15].raw);
     //board_delay_ms(1);
     //usbd_msc_polling(0);
+  #ifdef MTP_ENABLE
+    usbd_mtp_task();
+  #endif
   }
   return 0;
 }

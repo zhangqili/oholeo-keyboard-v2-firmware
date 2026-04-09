@@ -76,14 +76,16 @@ const uint16_t g_rgb_inverse_mapping[TOTAL_KEY_NUM] =
     2, 3, 4, 6, 9, 10, 11, 12, 13, 5, 7, 8, 53
 };
 #endif
+
+#define L_UNIT_TO_UM(x,y) {UNIT_TO_UM(x), UNIT_TO_UM(y)}
 const RGBLocation g_rgb_locations[RGB_NUM]={
-    {0.9f,2.0f},
-    {1.0f,3.0f},
-    {0.6f,4.0f},{1.9f,4.0f},{3.1f,4.0f},{5.1f,4.0f},{6.9f,4.0f},{7.6f,4.0f},{9.4f,4.0f},{10.5f,4.0f},{11.5f,4.0f},{12.5f,4.0f},{13.5f,4.0f},{14.5f,4.0f},
-    {14.5f,3.0f},{13.5f,3.0f},{12.5f,3.0f},{11.5f,3.0f},{10.5f,3.0f},{9.5f,3.0f},{8.5f,3.0f},{7.5f,3.0f},{6.5f,3.0f},{5.5f,3.0f},{4.5f,3.0f},{3.5f,3.0f},{2.5f,3.0f},
-    {2.2f,2.0f},{3.2f,2.0f},{4.2f,2.0f},{5.2f,2.0f},{6.2f,2.0f},{7.2f,2.0f},{8.2f,2.0f},{9.2f,2.0f},{10.2f,2.0f},{11.2f,2.0f},{12.2f,2.0f},{13.9f,2.0f},
-    {14.2f,1.0f},{13.0f,1.0f},{12.0f,1.0f},{11.0f,1.0f},{10.0f,1.0f},{9.0f,1.0f},{8.0f,1.0f},{7.0f,1.0f},{6.0f,1.0f},{5.0f,1.0f},{4.0f,1.0f},{3.0f,1.0f},{2.0f,1.0f},{0.8f,1.0f},
-    {0.5f,0.0f},{1.5f,0.0f},{2.5f,0.0f},{3.5f,0.0f},{4.5f,0.0f},{5.5f,0.0f},{6.5f,0.0f},{7.5f,0.0f},{8.5f,0.0f},{9.5f,0.0f},{10.5f,0.0f},{11.5f,0.0f},{12.5f,0.0f},{13.5f,0.0f},{14.0f,0.0f},{14.5f,0.0f},
+    L_UNIT_TO_UM(0.900,2.000), 
+    L_UNIT_TO_UM(1.000,3.000), 
+    L_UNIT_TO_UM(0.600,4.000), L_UNIT_TO_UM(1.900,4.000), L_UNIT_TO_UM(3.100,4.000), L_UNIT_TO_UM(5.100,4.000), L_UNIT_TO_UM(6.900,4.000), L_UNIT_TO_UM(7.600,4.000), L_UNIT_TO_UM(9.400,4.000), L_UNIT_TO_UM(10.500,4.000), L_UNIT_TO_UM(11.500,4.000), L_UNIT_TO_UM(12.500,4.000), L_UNIT_TO_UM(13.500,4.000), L_UNIT_TO_UM(14.500,4.000), 
+    L_UNIT_TO_UM(14.500,3.000), L_UNIT_TO_UM(13.500,3.000), L_UNIT_TO_UM(12.500,3.000), L_UNIT_TO_UM(11.500,3.000), L_UNIT_TO_UM(10.500,3.000), L_UNIT_TO_UM(9.500,3.000), L_UNIT_TO_UM(8.500,3.000), L_UNIT_TO_UM(7.500,3.000), L_UNIT_TO_UM(6.500,3.000), L_UNIT_TO_UM(5.500,3.000), L_UNIT_TO_UM(4.500,3.000), L_UNIT_TO_UM(3.500,3.000), L_UNIT_TO_UM(2.500,3.000), 
+    L_UNIT_TO_UM(2.200,2.000), L_UNIT_TO_UM(3.200,2.000), L_UNIT_TO_UM(4.200,2.000), L_UNIT_TO_UM(5.200,2.000), L_UNIT_TO_UM(6.200,2.000), L_UNIT_TO_UM(7.200,2.000), L_UNIT_TO_UM(8.200,2.000), L_UNIT_TO_UM(9.200,2.000), L_UNIT_TO_UM(10.200,2.000), L_UNIT_TO_UM(11.200,2.000), L_UNIT_TO_UM(12.200,2.000), L_UNIT_TO_UM(13.900,2.000), 
+    L_UNIT_TO_UM(14.200,1.000), L_UNIT_TO_UM(13.000,1.000), L_UNIT_TO_UM(12.000,1.000), L_UNIT_TO_UM(11.000,1.000), L_UNIT_TO_UM(10.000,1.000), L_UNIT_TO_UM(9.000,1.000), L_UNIT_TO_UM(8.000,1.000), L_UNIT_TO_UM(7.000,1.000), L_UNIT_TO_UM(6.000,1.000), L_UNIT_TO_UM(5.000,1.000), L_UNIT_TO_UM(4.000,1.000), L_UNIT_TO_UM(3.000,1.000), L_UNIT_TO_UM(2.000,1.000), L_UNIT_TO_UM(0.800,1.000), 
+    L_UNIT_TO_UM(0.500,0.000), L_UNIT_TO_UM(1.500,0.000), L_UNIT_TO_UM(2.500,0.000), L_UNIT_TO_UM(3.500,0.000), L_UNIT_TO_UM(4.500,0.000), L_UNIT_TO_UM(5.500,0.000), L_UNIT_TO_UM(6.500,0.000), L_UNIT_TO_UM(7.500,0.000), L_UNIT_TO_UM(8.500,0.000), L_UNIT_TO_UM(9.500,0.000), L_UNIT_TO_UM(10.500,0.000), L_UNIT_TO_UM(11.500,0.000), L_UNIT_TO_UM(12.500,0.000), L_UNIT_TO_UM(13.500,0.000), L_UNIT_TO_UM(14.000,0.000), L_UNIT_TO_UM(14.500,0.000)
 };
 
 volatile uint8_t low_latency_mode = 0;
@@ -109,7 +111,7 @@ const uint16_t g_analog_map[ADVANCED_KEY_NUM] =
     LO(M4,4),   LO(M5,3),   LO(M6,1),
 };
 
-static const float table[8192] = {
+static const uint16_t table[8192] = {
     A_ANTI_NORM(0.00000000), A_ANTI_NORM(0.00084520), A_ANTI_NORM(0.00165927), A_ANTI_NORM(0.00244526), A_ANTI_NORM(0.00320622), A_ANTI_NORM(0.00394520), A_ANTI_NORM(0.00466523), A_ANTI_NORM(0.00536933), A_ANTI_NORM(0.00605966), A_ANTI_NORM(0.00673764), 
     A_ANTI_NORM(0.00740464), A_ANTI_NORM(0.00806199), A_ANTI_NORM(0.00871067), A_ANTI_NORM(0.00935153), A_ANTI_NORM(0.00998545), A_ANTI_NORM(0.01061330), A_ANTI_NORM(0.01123610), A_ANTI_NORM(0.01185487), A_ANTI_NORM(0.01247066), A_ANTI_NORM(0.01308424), 
     A_ANTI_NORM(0.01369518), A_ANTI_NORM(0.01430270), A_ANTI_NORM(0.01490604), A_ANTI_NORM(0.01550504), A_ANTI_NORM(0.01610355), A_ANTI_NORM(0.01670702), A_ANTI_NORM(0.01732088), A_ANTI_NORM(0.01795020), A_ANTI_NORM(0.01859617), A_ANTI_NORM(0.01925780), 
@@ -934,18 +936,9 @@ static const float table[8192] = {
 
 AnalogValue advanced_key_normalize(AdvancedKey* advanced_key, AnalogRawValue value)
 {
-
-const uint16_t length = sizeof(table) / sizeof(table[0]);
-#ifndef FIXED_POINT_EXPERIMENTAL
-#ifdef OPTIMIZE_FOR_FLOAT_DIVISION
-    float x = (advanced_key->config.upper_bound - value) * advanced_key->range_reciprocal;
-#else
-    float x = (advanced_key->config.upper_bound - value) / (float)(advanced_key->config.upper_bound - advanced_key->config.lower_bound);
-#endif
-    int16_t index = x * length;
-#else
-    int16_t index = (advanced_key->config.upper_bound - value) * length / (advanced_key->config.upper_bound - advanced_key->config.lower_bound);
-#endif
+    const uint16_t length = sizeof(table) / sizeof(table[0]);
+    int32_t delta = (advanced_key->config.upper_bound - value);
+    int16_t index = ((delta * advanced_key->q_scale_to_index) >> 16);
     if (index < 0)
     {
         index = 0;
@@ -955,21 +948,6 @@ const uint16_t length = sizeof(table) / sizeof(table[0]);
         index = length - 1;
     }
     return table[index] + ANALOG_VALUE_MIN;
-    /*
-    if (x<0.225)
-    {
-        return x*(0.5/0.225);
-    }
-    else if (x<0.404)
-    {
-        return (x-0.225)*(0.25/(0.404-0.225))+0.5;
-    }
-    else
-    {
-        return (x-0.404)*(0.25/(1.0-0.404))+0.75;
-    }
-    */
-    
 }
 
 void keyboard_delay(uint32_t ms)

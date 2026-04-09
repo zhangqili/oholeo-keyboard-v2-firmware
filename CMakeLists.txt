@@ -49,13 +49,15 @@ endif()
 
 file(GLOB_RECURSE MY_SOURCES
     "./src/*.c"
-    "./lib/libamp/usb/template/cherryusb/*.c")
+    "./lib/libamp/usb/template/cherryusb/*.c"
+    "./lib/libamp/usb/template/cherryusb/mtp/*.c")
 # 添加源文件
 sdk_app_src(${MY_SOURCES})
 
 sdk_inc(
     include
     lib/libamp/usb/template/cherryusb
+    lib/libamp/usb/template/cherryusb/mtp
 )
 
 target_link_libraries(app PRIVATE

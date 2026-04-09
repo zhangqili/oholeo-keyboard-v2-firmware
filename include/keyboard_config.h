@@ -13,8 +13,6 @@
 #define ADVANCED_KEY_NUM        69
 #define KEY_NUM                 3
 #define POLLING_RATE            8000
-//#define FIXED_POINT_EXPERIMENTAL
-#define OPTIMIZE_FOR_DIVISION
 #define DEBUG_INTERVAL 0
 #define DYNAMICKEY_ENABLE
 #define MACRO_ENABLE
@@ -29,6 +27,7 @@
 #define DEBOUNCE_PRESS_EAGER    1
 #define DEBOUNCE_RELEASE        0
 #define DEBOUNCE_RELEASE_EAGER  1
+#define LUT_LENGTH              8192
 //#define KEYBOARD_OPERATION_POLLING
 
 /********************/
@@ -76,9 +75,9 @@
 #define BUBBLE_DISTANCE         2.5f
 #define PORT_LOCATION           {1, -0.5}
 #define RGB_FLASH_MAX_DURATION  1000
-#define RGB_FLASH_RIPPLE_SPEED  0.03
+//#define RGB_FLASH_RIPPLE_SPEED  30
 #define RGB_DEFAULT_MODE        RGB_MODE_LINEAR
-#define RGB_DEFAULT_SPEED       0.03
+#define RGB_DEFAULT_SPEED       20
 #define RGB_DEFAULT_COLOR_HSV   {273, 78, 99}
 #define RGB_LEFT                -0.5f
 #define RGB_TOP                 -0.5f
@@ -139,6 +138,7 @@
 /*******/
 /* USB */
 /*******/
+#define CONFIG_USB_HS
 #define USB_POLLING_INTERVAL_MS 1
 #define FIXED_CONTROL_ENDPOINT_SIZE 0x40
 #define VENDOR_ID 0x0D00
@@ -150,6 +150,7 @@
 #define MANUFACTURER "Lzq12345"
 #define PRODUCT "Oholeo Keyboard V2"
 #define SERIAL_NUMBER "2022123456"
+#define MTP_DESCRIPTION "Keyboard Flash"
 
 #define RAW_ENABLE
 //#define KEYBOARD_SHARED_EP
@@ -164,8 +165,12 @@
 //#define DIGITIZER_SHARED_EP
 //#define PROGRAMMABLE_BUTTON_ENABLE
 #define MIDI_ENABLE
+//#define MTP_ENABLE
 //#define MSC_ENABLE
 //#define LIGHTING_ENABLE
+
+#define MTP_MAX_HANDLES 32
+#define MTP_MAX_PATH_LEN 255
 
 /*********/
 /* Nexus */
