@@ -146,6 +146,7 @@
 #define DEVICE_VER 2
 #define FIXED_NUM_CONFIGURATIONS 1
 #define USB_ENDPOINTS_ARE_REORDERABLE
+#define MAX_ENDPOINTS 16
 
 #define MANUFACTURER "Lzq12345"
 #define PRODUCT "Oholeo Keyboard V2"
@@ -166,11 +167,11 @@
 //#define PROGRAMMABLE_BUTTON_ENABLE
 #define MIDI_ENABLE
 //#define MTP_ENABLE
-//#define MSC_ENABLE
+#define GAMEPAD_ENABLE
 //#define LIGHTING_ENABLE
 
 #define MTP_MAX_HANDLES 32
-#define MTP_MAX_PATH_LEN 255
+#define MTP_MAX_PATH_LEN 256
 
 /*********/
 /* Nexus */

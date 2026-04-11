@@ -21,6 +21,7 @@
 #include "hpm_romapi.h"
 #include "hpm_interrupt.h"
 #include "hpm_pdgo_drv.h"
+#include "gamepad.h"
 
 const Keycode g_default_keymap[LAYER_NUM][TOTAL_KEY_NUM] = {
     {
@@ -1037,51 +1038,6 @@ void keyboard_user_event_handler(KeyboardEvent event)
     }
 }
 
-int hid_send_shared_ep(uint8_t *report, uint16_t len)
-{
-    return usb_send_shared_ep(report, len);
-}
-
-int hid_send_keyboard(uint8_t *report, uint16_t len)
-{
-    return usb_send_keyboard(report, len);
-}
-
-int hid_send_nkro(uint8_t *report, uint16_t len)
-{
-    return usb_send_shared_ep(report, len);
-}
-
-int hid_send_extra_key(uint8_t*report,uint16_t len)
-{
-    return usb_send_shared_ep(report, len);
-}
-
-int hid_send_mouse(uint8_t*report,uint16_t len)
-{
-    return usb_send_shared_ep(report, len);
-}
-
-int hid_send_joystick(uint8_t*report,uint16_t len)
-{
-    return usb_send_shared_ep(report, len);
-}
-
-int hid_send_raw(uint8_t *report, uint16_t len)
-{
-    return usb_send_raw(report, len);
-}
-
-void send_midi(uint8_t *report, uint16_t len)
-{
-    usb_send_midi(report, len);
-}
-
-int send_remote_wakeup(void)
-{
-    return usbd_send_remote_wakeup(0);
-}
-
 static xpi_nor_config_t s_xpi_nor_config;
 int flash_init(void)
 {
@@ -1100,26 +1056,16 @@ extern hpm_serial_nor_t nor_flash_dev;
 int flash_read(uint32_t addr, uint32_t size, uint8_t *data)
 {   
     return hpm_serial_nor_read(&nor_flash_dev, data, size, addr);
-    //uint32_t program_start = 512*1024 + addr;
-    //uint32_t program_size = size;
-    //return rom_xpi_nor_read(BOARD_APP_XPI_NOR_XPI_BASE, xpi_xfer_channel_auto, &s_xpi_nor_config, (uint32_t *)data, program_start, program_size);
 }
 
 int flash_write(uint32_t addr, uint32_t size, const uint8_t *data)
 {
     return hpm_serial_nor_program_blocking(&nor_flash_dev, (uint8_t*)data, size, addr);
-    //uint32_t program_start = 512*1024 + addr;
-    //uint32_t program_size = size;
-    //return rom_xpi_nor_program(BOARD_APP_XPI_NOR_XPI_BASE, xpi_xfer_channel_auto, &s_xpi_nor_config, (const uint32_t *)data, program_start, program_size);
 }
 
 int flash_erase(uint32_t addr, uint32_t size)
 {
     return hpm_serial_nor_erase_blocking(&nor_flash_dev, addr, size);
-    //uint32_t erase_start = 512*1024 + addr;
-    //uint32_t erase_size = size;
-    //
-    //return rom_xpi_nor_erase(BOARD_APP_XPI_NOR_XPI_BASE, xpi_xfer_channel_auto, &s_xpi_nor_config, erase_start, erase_size);
 }
 
 int led_set(uint16_t index, uint8_t r, uint8_t g, uint8_t b)
@@ -1138,6 +1084,16 @@ void keyboard_scan()
 {
     keyboard_key_update(&g_keyboard_keys[0], !gpio_read_pin(HPM_GPIO0, GPIO_OE_GPIOA, 9));
     encoder_input(0, (int32_t)qeiv2_get_phase_cnt(BOARD_BLDC_QEIV2_BASE)/4);
-    //keyboard_key_update(&g_keyboard_advanced_keys[0], );
 }
 
+void gamepad_out_callback(GamepadOutReport* report)
+{
+    if (report->report_id == 0)
+    {
+        if (report->rumble_l || report->rumble_r)
+        {
+            extern uint32_t pulse_counter;
+            pulse_counter=KEYBOARD_TIME_TO_TICK(MAX(report->rumble_l, report->rumble_r));
+        }
+    }
+}

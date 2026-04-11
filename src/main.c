@@ -54,12 +54,15 @@ volatile double end_time_avg;
 volatile uint32_t end_time_cnt;
 volatile uint32_t err_cnt;
 
+volatile bool is_init_complete = false;
+
+Key boot_key;
+
 void keyboard_key_event_down_callback_user(Key*key)
 {
   UNUSED(key);
   pulse_counter=PULSE_LEN_MS;
 }
-volatile bool is_init_complete = false;
 
 int main(void)
 {   
@@ -182,9 +185,12 @@ int main(void)
     //  }
     //  rgb_state = false;
     //}
-    if (gpio_read_pin(HPM_GPIO0, GPIO_OE_GPIOA, 3))
+    if (key_update(&boot_key, gpio_read_pin(HPM_GPIO0, GPIO_OE_GPIOA, 3)))
     {
-      keyboard_reboot();
+      if (boot_key.state == false)
+      {
+        keyboard_jump_to_bootloader(); 
+      } 
     }
     
     if (rgb_state || (last_rgb_state && !rgb_state) || flush_failed)
