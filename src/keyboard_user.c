@@ -41,10 +41,10 @@ const Keycode g_default_keymap[LAYER_NUM][TOTAL_KEY_NUM] = {
         KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,
     },
     {
-        KEYBOARD_OPERATION | (KEYBOARD_BOOTLOADER << 8),  KEYBOARD_OPERATION | (KEYBOARD_PROFILE0 << 8),                    KEYBOARD_OPERATION | (KEYBOARD_PROFILE1 << 8),KEYBOARD_OPERATION | (KEYBOARD_PROFILE2 << 8),                    KEYBOARD_OPERATION | (KEYBOARD_PROFILE3 << 8),       KEY_TRANSPARENT,                                               KEY_TRANSPARENT,               KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,                                KEY_TRANSPARENT,    KEYBOARD_OPERATION | (KEYBOARD_RGB_BRIGHTNESS_DOWN << 8),    KEYBOARD_OPERATION | (KEYBOARD_RGB_BRIGHTNESS_UP << 8),    KEYBOARD_OPERATION | (KEYBOARD_RESET_TO_DEFAULT << 8),KEY_TRANSPARENT,KEYBOARD_OPERATION | (KEYBOARD_RESET_TO_DEFAULT << 8),
-        KEY_TRANSPARENT,                                  KEY_TRANSPARENT,                                                  KEY_TRANSPARENT,                              KEY_TRANSPARENT,                                                  KEYBOARD_OPERATION | (KEYBOARD_REBOOT << 8),        KEYBOARD_CONFIG(KEYBOARD_CONFIG_NKRO, KEYBOARD_CONFIG_TOGGLE),  KEY_TRANSPARENT,               KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,                                KEY_TRANSPARENT,    KEY_TRANSPARENT,    KEY_TRANSPARENT,    KEY_TRANSPARENT,
-        KEY_USER | (USER_SNAKE_LAUNCH << 8),              KEY_TRANSPARENT,                                                  KEYBOARD_OPERATION | (KEYBOARD_SAVE << 8),    KEYBOARD_CONFIG(KEYBOARD_CONFIG_DEBUG, KEYBOARD_CONFIG_TOGGLE),   KEYBOARD_OPERATION | (KEYBOARD_FACTORY_RESET << 8), KEY_TRANSPARENT,                                                KEY_TRANSPARENT,               KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_USER | (USER_TOGGLE_LOW_LATENCY_MODE << 8), KEY_TRANSPARENT,    KEY_TRANSPARENT,    KEY_TRANSPARENT,
-        KEY_TRANSPARENT,                                  KEY_TRANSPARENT,                                                  KEY_TRANSPARENT,                              KEYBOARD_OPERATION | (KEYBOARD_CALIBRATE << 8),                   KEY_USER | (USER_EM << 8),                          KEY_USER | (USER_BEEP << 8),                                    KEY_USER | (USER_RESET << 8),  KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,                                KEY_TRANSPARENT,    KEY_TRANSPARENT,    KEY_TRANSPARENT,        KEY_TRANSPARENT,
+        KEYBOARD_OPERATION | (KEYBOARD_BOOTLOADER << 8),  KEYBOARD_OPERATION | (KEYBOARD_PROFILE0 << 8),                    KEYBOARD_OPERATION | (KEYBOARD_PROFILE1 << 8),KEYBOARD_OPERATION | (KEYBOARD_PROFILE2 << 8),                    KEYBOARD_OPERATION | (KEYBOARD_PROFILE3 << 8),       KEY_TRANSPARENT,                                               KEY_TRANSPARENT,               KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT, KEY_TRANSPARENT,    KEYBOARD_OPERATION | (KEYBOARD_RGB_BRIGHTNESS_DOWN << 8),    KEYBOARD_OPERATION | (KEYBOARD_RGB_BRIGHTNESS_UP << 8),    KEYBOARD_OPERATION | (KEYBOARD_RESET_TO_DEFAULT << 8),KEY_TRANSPARENT,KEYBOARD_OPERATION | (KEYBOARD_RESET_TO_DEFAULT << 8),
+        SCRIPT_COLLECTION | (SCRIPT_TOGGLE << 8),         KEY_TRANSPARENT,                                                  KEY_TRANSPARENT,                              KEY_TRANSPARENT,                                                  KEYBOARD_OPERATION | (KEYBOARD_REBOOT << 8),        KEYBOARD_CONFIG(KEYBOARD_CONFIG_NKRO, KEYBOARD_CONFIG_TOGGLE),  KEY_TRANSPARENT,               KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT, KEY_TRANSPARENT,    KEY_TRANSPARENT,    KEY_TRANSPARENT,    KEY_TRANSPARENT,
+        KEY_TRANSPARENT,                                  KEY_TRANSPARENT,                                                  KEYBOARD_OPERATION | (KEYBOARD_SAVE << 8),    KEYBOARD_CONFIG(KEYBOARD_CONFIG_DEBUG, KEYBOARD_CONFIG_TOGGLE),   KEYBOARD_OPERATION | (KEYBOARD_FACTORY_RESET << 8), KEY_TRANSPARENT,                                                KEY_TRANSPARENT,               KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT, KEY_TRANSPARENT,    KEY_TRANSPARENT,    KEY_TRANSPARENT,
+        KEY_TRANSPARENT,                                  KEY_TRANSPARENT,                                                  KEY_TRANSPARENT,                              KEYBOARD_OPERATION | (KEYBOARD_CALIBRATE << 8),                   KEY_USER | (USER_EM << 8),                          KEY_USER | (USER_BEEP << 8),                                    KEY_USER | (USER_RESET << 8),  KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT, KEY_TRANSPARENT,    KEY_TRANSPARENT,    KEY_TRANSPARENT,        KEY_TRANSPARENT,
         KEY_TRANSPARENT,                                  KEYBOARD_CONFIG(KEYBOARD_CONFIG_WINLOCK, KEYBOARD_CONFIG_TOGGLE), KEY_TRANSPARENT,                              KEY_TRANSPARENT,                                                  KEY_TRANSPARENT,                                    KEY_TRANSPARENT,                                                KEY_TRANSPARENT,               KEY_TRANSPARENT,KEY_TRANSPARENT,
         KEY_TRANSPARENT,KEY_TRANSPARENT,KEY_TRANSPARENT,KEYBOARD_OPERATION | (KEYBOARD_BOOTLOADER << 8),KEY_TRANSPARENT,KEY_TRANSPARENT,
     }
@@ -996,36 +996,6 @@ void keyboard_user_event_handler(KeyboardEvent event)
         break;
     case USER_EM:
         em_switch = !em_switch;
-        break;
-    case USER_SNAKE_LAUNCH:
-        //if (!low_latency_mode)
-        //{
-        //    snake_launch(&g_snake);
-        //}
-        break;
-    case USER_SNAKE_QUIT:
-        //snake_quit(&g_snake);
-        break;
-    case USER_SNAKE_PAUSE:
-        //snake_pause(&g_snake);
-        break;
-    case USER_SNAKE_SPEED_UP:
-        //snake_speed_up(&g_snake);
-        break;
-    case USER_SNAKE_SPEED_DOWN:
-        //snake_speed_down(&g_snake);
-        break;
-    case USER_SNAKE_RESTART:
-        //snake_restart(&g_snake);
-        break;
-    case USER_SNAKE_LEFT:
-    case USER_SNAKE_UP:
-    case USER_SNAKE_RIGHT:
-    case USER_SNAKE_DOWN:
-        //snake_turn(&g_snake, KEYCODE_GET_SUB(event.keycode)&0x07);
-        break;
-    case USER_TOGGLE_LOW_LATENCY_MODE:
-        low_latency_mode = !low_latency_mode;
         break;
     default:
         beep_switch = false;

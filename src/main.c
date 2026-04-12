@@ -283,6 +283,15 @@ void rgb_update_callback()
       g_rgb_colors[g_rgb_inverse_mapping[47]].g = 0xff;
       g_rgb_colors[g_rgb_inverse_mapping[47]].b = 0xff;
     }
+#ifdef SCRIPT_ENABLE
+    extern volatile bool g_keyboard_enable_script;
+    if (g_keyboard_enable_script)
+    {
+      g_rgb_colors[g_rgb_inverse_mapping[16]].r = 0xff;
+      g_rgb_colors[g_rgb_inverse_mapping[16]].g = 0xff;
+      g_rgb_colors[g_rgb_inverse_mapping[16]].b = 0xff;
+    }
+#endif
     /*
     if (low_latency_mode)
     {
