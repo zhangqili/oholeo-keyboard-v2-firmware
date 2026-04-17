@@ -1,11 +1,11 @@
-keyboard.watch(55,63,64,65);
+keyboard.watch(55, 63, 64, 65);
 keyboard.watch(60);
-keyboard.watch(66,67,68);
-keyboard.watch(13,14,15);
+keyboard.watch(66, 67, 68);
+keyboard.watch(13, 14, 15);
 keyboard.watch(30);
 keyboard.watch(28, 29);
 
-var directionPreset = [{ x: -1, y: 0 },{ x: 0, y: 1 },{ x: 1, y: 0 },{ x: 0, y: -1 }]
+var directionPreset = [{ x: -1, y: 0 }, { x: 0, y: 1 }, { x: 1, y: 0 }, { x: 0, y: -1 }]
 var counter = 0;
 var direction = { x: 0, y: 0 };
 var nextDirection = { x: 0, y: 0 };
@@ -18,12 +18,12 @@ var food = { x: Math.floor(Math.random() * width), y: Math.floor(Math.random() *
 var interval = 4000;
 var nextTick = 0;
 var grid = [[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
-            [17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27],
-            [31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41],
-            [44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54]];
+[17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27],
+[31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41],
+[44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54]];
 
-function snakeInit()
-{
+function snakeInit() {
+    failed = false;
     keyboard.command(0x24);
     for (var i = 0; i < 69; i++) {
         led.setMode(i, 0)
@@ -35,37 +35,32 @@ function snakeInit()
     renderDirection();
 }
 
-function snakeExit()
-{
+function snakeExit() {
     isRunning = false;
     keyboard.command(0x64);
     keyboard.command(0x08);
 }
 
-function speedAdd(x)
-{
+function speedAdd(x) {
     interval = Math.max(1000, Math.min(8000, interval + x));
 
 }
 
-function hit(point)
-{
+function hit(x,y) {
     for (var i = 0; i < snake.length; i++) {
-        if (snake[i].x == point.x && snake[i].y == point.y) {
+        if (snake[i].x == x && snake[i].y == y) {
             return true;
         }
     }
     return false;
 }
 
-function spawnFood()
-{
-    while (true)
-    {
+function spawnFood() {
+    if (snake.length >= width * height) return;
+    while (true) {
         var newX = Math.floor(Math.random() * width);
         var newY = Math.floor(Math.random() * height);
-        if (!hit({ x: newX, y: newY }))
-        {
+        if (!hit(newX, newY)) {
             food.x = newX;
             food.y = newY;
             break;
@@ -74,12 +69,10 @@ function spawnFood()
 }
 
 function pause() {
-    if (nextTick != 0xFFFFFFFF)
-    {
+    if (nextTick != 0xFFFFFFFF) {
         nextTick = 0xFFFFFFFF;
     }
-    else
-    {
+    else {
         nextTick = keyboard.getTick() + interval;
     }
 }
@@ -87,17 +80,14 @@ function pause() {
 function render() {
     for (var i = 0; i < grid.length; i++) {
         for (var j = 0; j < grid[0].length; j++) {
-            led.setRGB(grid[i][j], 0, 0,0)
+            led.setRGB(grid[i][j], 0, 0, 0)
         }
     }
-    for (var i = 0; i < snake.length; i++)
-    {
-        if (failed)
-        {
+    for (var i = 0; i < snake.length; i++) {
+        if (failed) {
             led.setRGB(grid[snake[i].y][snake[i].x], 0x80, 0, 0);
         }
-        else
-        {
+        else {
             led.setRGB(grid[snake[i].y][snake[i].x], 0xff, 0xff, 0xff);
         }
     }
@@ -136,34 +126,34 @@ function renderDirection() {
 }
 
 function update() {
-    if (failed)
-    {
+    if (failed) {
         return;
     }
     direction = nextDirection;
     var head = snake[snake.length - 1];
-    var newHead = { x: (head.x + direction.x + width) % width, y: (head.y + direction.y + height) % height };
-    if (hit(newHead))
-    {
+    var nextX = (head.x + direction.x + width) % width;
+    var nextY = (head.y + direction.y + height) % height;
+    if (hit(nextX, nextY)) {
         failed = true;
         return;
     }
-    if (newHead.x == food.x && newHead.y == food.y)
-    {
-        snake.push(newHead);
+    if (nextX == food.x && nextY == food.y) {
+        snake.push({x: nextX, y: nextY});
         spawnFood();
     }
     else {
-        for (var i = 0; i < snake.length-1; i++) {
+        var tail = snake[0];
+        for (var i = 0; i < snake.length - 1; i++) {
             snake[i] = snake[i + 1];
         }
-        snake[snake.length - 1] = newHead;
+        tail.x = nextX;
+        tail.y = nextY;
+        snake[snake.length - 1] = tail;
     }
 }
 // Runs per tick.
 function loop() {
-    if (isRunning == false)
-    {
+    if (isRunning == false) {
         return;
     }
     var tick = keyboard.getTick();
@@ -177,10 +167,8 @@ function loop() {
 }
 
 function onKeyDown(key) {
-    if (!isRunning)
-    {
-        if (key.id == 30 && keyboard.getLayerIndex() == 2)
-        {
+    if (!isRunning) {
+        if (key.id == 30 && keyboard.getLayerIndex() == 2) {
             snakeInit();
         }
         return;
@@ -232,4 +220,9 @@ function onKeyDown(key) {
 
 function onKeyUp(key) {
 
+}
+
+function onExit() 
+{
+    snakeExit();
 }

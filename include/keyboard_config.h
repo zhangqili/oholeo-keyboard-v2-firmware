@@ -168,6 +168,7 @@
 #define MIDI_ENABLE
 //#define MTP_ENABLE
 #define GAMEPAD_ENABLE
+//#define WEBUSB_ENABLE
 //#define LIGHTING_ENABLE
 
 #define MTP_MAX_HANDLES 32
@@ -185,7 +186,7 @@
 /**********/
 /* Script */
 /**********/
-//#define SCRIPT_ENABLE
+#define SCRIPT_ENABLE
 #define SCRIPT_RUNTIME_STRATEGY SCRIPT_JIT
 #define SCRIPT_MEMORY_SIZE ( 12 * 1024 )
 #define SCRIPT_SOURCE_BUFFER_SIZE  (6 * 1024)
