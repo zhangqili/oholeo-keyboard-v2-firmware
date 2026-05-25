@@ -28,6 +28,7 @@
 #define DEBOUNCE_RELEASE        0
 #define DEBOUNCE_RELEASE_EAGER  1
 #define LUT_LENGTH              8192
+#define CONSOLE_ENABLE
 //#define KEYBOARD_OPERATION_POLLING
 
 /********************/

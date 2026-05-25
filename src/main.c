@@ -33,6 +33,7 @@
 #include "driver.h"
 #include "log.h"
 #include "usbd_mtp.h"
+#include "console.h"
 //#include "usbd_msc.h"
 
 uint32_t pulse_counter = 0;
@@ -203,9 +204,9 @@ int main(void)
     //printf("%ld\t%.0f\t%.2f\t%d\n", debug1, key->raw/16.0f, key->value, key->key.report_state);
     //printf("%ld\t%ld\t%d\t%ld\t%.0f\t%.0f\t%ld\t%ld\t%ld\n", g_keyboard_tick, debug1, err_cnt, g_keyboard_report_flags.keyboard, g_keyboard_advanced_keys[6].raw/16.0f, g_keyboard_advanced_keys[23].raw/16.0f, (uint32_t)start_time, (uint32_t)end_time1, (uint32_t)end_time);
     //printf("%.2f,%.2f,%.2f,%.2f,%d\n",ringbuf_avg(&g_adc_ringbufs[g_analog_map[16]]), ringbuf_avg(&g_adc_ringbufs[g_analog_map[17]]), ringbuf_avg(&g_adc_ringbufs[g_analog_map[28]]), ringbuf_avg(&g_adc_ringbufs[g_analog_map[35]]), rgb_state);
-    log_info("%ld\t%lf\t%lf\t%lf\t%.0f\t%.0f\t%.0f\t%.0f\t%.0f\t%.0f\t%.0f",debug1, (double)(start_time/(double)start_time_cnt), (double)(end_time1/(double)end_time1_cnt), (double)(end_time/(double)end_time_cnt) ,g_keyboard_advanced_keys[6].raw/8, g_keyboard_advanced_keys[23].raw/8, g_keyboard_advanced_keys[22].raw, g_keyboard_advanced_keys[24].raw, g_keyboard_advanced_keys[1].raw, g_keyboard_advanced_keys[0].raw, g_keyboard_advanced_keys[16].raw);
+    //console_printf("[%ld] %ld\t%lf\t%lf\t%lf\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n", g_keyboard_tick, debug1, (double)(start_time/(double)start_time_cnt), (double)(end_time1/(double)end_time1_cnt), (double)(end_time/(double)end_time_cnt) ,g_keyboard_advanced_keys[6].raw/8, g_keyboard_advanced_keys[23].raw/8, g_keyboard_advanced_keys[22].raw, g_keyboard_advanced_keys[24].raw, g_keyboard_advanced_keys[1].raw, g_keyboard_advanced_keys[0].raw, g_keyboard_advanced_keys[16].raw);
     //printf("%ld\t%.0f\t%.0f\t%.0f\t%.0f\t%.0f\t%.0f\t%.0f\n",debug1 ,g_keyboard_advanced_keys[44].raw/16, g_keyboard_advanced_keys[45].raw/16, g_keyboard_advanced_keys[46].raw/16, g_keyboard_advanced_keys[47].raw/16, g_keyboard_advanced_keys[1].raw/16, g_keyboard_advanced_keys[0].raw/16, g_keyboard_advanced_keys[16].raw/16);
-    //printf("%ld\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\n",debug1 ,g_keyboard_advanced_keys[9].raw, g_keyboard_advanced_keys[10].raw, g_keyboard_advanced_keys[11].raw, g_keyboard_advanced_keys[12].raw, g_keyboard_advanced_keys[13].raw, g_keyboard_advanced_keys[14].raw, g_keyboard_advanced_keys[15].raw);
+    //printf("%ld\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\n",debug1 ,g_keyboard_advanced_keys[9].raw, g_keyboard_advanced_keys[10].raw, g_keyboard_advanced_keys[11].raw, g_keyboard_advanced_keys[12].raw, g_keyboard_advanced_keys[13].raw, g_KEYBOARD_ADVANCED_KEYS[14].raw, g_KEYBOARD_ADVANCED_KEYS[15].raw);
     //board_delay_ms(1);
     //usbd_msc_polling(0);
   #ifdef MTP_ENABLE
