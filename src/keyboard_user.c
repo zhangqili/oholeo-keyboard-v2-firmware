@@ -3,12 +3,16 @@
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+
 #include "keyboard.h"
 #include "rgb.h"
 #include "string.h"
 #include "usbd_user.h"
 #include "analog.h"
-#include "qmk_midi.h"
+#include "midi.h"
 #include "hpm_gpio_drv.h"
 #include "hpm_gpiom_drv.h"
 #include "hpm_romapi.h"
@@ -22,6 +26,9 @@
 #include "hpm_interrupt.h"
 #include "hpm_pdgo_drv.h"
 #include "gamepad.h"
+#include "usb_serial_number.h"
+#include "hpm_otp_drv.h"
+#include "hpm_soc_feature.h"
 
 const Keycode g_default_keymap[LAYER_NUM][TOTAL_KEY_NUM] = {
     {
@@ -1067,3 +1074,38 @@ void gamepad_out_callback(GamepadOutReport* report)
         }
     }
 }
+
+#define HPM_UUID_WORD_SIZE  4U
+#define HPM_UUID_WORD_COUNT (OTP_SOC_UUID_LEN / HPM_UUID_WORD_SIZE)
+
+#if (OTP_SOC_UUID_LEN % HPM_UUID_WORD_SIZE) != 0
+#    error OTP_SOC_UUID_LEN must be word aligned
+#endif
+
+size_t usb_descriptor_get_serial_number(char *buffer, size_t buffer_size)
+{
+    uint32_t uuid[HPM_UUID_WORD_COUNT] = {0};
+    uint8_t  id[OTP_SOC_UUID_LEN] = {0};
+    size_t   id_index = 0;
+
+    if (buffer == NULL || buffer_size == 0) {
+        return 0;
+    }
+
+    for (size_t word_index = 0; word_index < HPM_UUID_WORD_COUNT; word_index++) {
+        const uint32_t word = otp_read_from_shadow(OTP_SOC_UUID_IDX + word_index);
+
+        uuid[word_index] = word;
+    }
+
+    for (size_t word_index = 0; word_index < HPM_UUID_WORD_COUNT; word_index++) {
+        const uint32_t word = uuid[word_index];
+
+        for (size_t byte_index = 0; byte_index < HPM_UUID_WORD_SIZE; byte_index++) {
+            id[id_index++] = (uint8_t)((word >> (byte_index * 8U)) & 0xFFU);
+        }
+    }
+
+    return usb_descriptor_bytes_to_hex_string(buffer, buffer_size, id, sizeof(id));
+}
+
