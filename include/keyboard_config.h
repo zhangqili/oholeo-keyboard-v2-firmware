@@ -151,6 +151,7 @@
 
 #define MANUFACTURER "Lzq12345"
 #define PRODUCT "Oholeo Keyboard V2"
+#define SERIAL_NUMBER_USE_CUSTOM
 #define SERIAL_NUMBER_LENGTH 32
 #define MTP_DESCRIPTION "Keyboard Flash"
 
