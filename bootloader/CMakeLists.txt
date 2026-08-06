@@ -31,8 +31,14 @@ sdk_inc(src)
 
 sdk_app_src(src/main.c)
 
+sdk_app_src(src/dfu.c)
 sdk_app_src(src/ghostfat.c)
 sdk_app_src(src/msc.c)
 sdk_app_src(src/usb_descriptors.c)
 sdk_app_src(src/board_api.c)
+
+# HPM SDK's TinyUSB integration does not yet register the DFU-mode class.
+# Compile the upstream TinyUSB DFU implementation with this bootloader instead
+# of carrying a modification to the SDK submodule.
+sdk_app_src(${CMAKE_SOURCE_DIR}/../hpm_sdk/middleware/tinyusb/src/class/dfu/dfu_device.c)
 generate_ide_projects()

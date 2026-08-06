@@ -101,6 +101,25 @@ void uf2_board_flash_flush(void)
     _flash_page_addr = NO_CACHE;
 }
 
+void uf2_board_flash_abort(void)
+{
+    /* The cache has not been programmed until uf2_board_flash_flush(). */
+    _flash_page_addr = NO_CACHE;
+}
+
+void uf2_board_flash_invalidate_app(void)
+{
+    const uint32_t invalid_signature = 0;
+
+    /*
+     * BOARD_UF2_SIGNATURE is also the boot-valid marker. Program an invalid
+     * value and flush it before touching the image, so a reset during DFU
+     * always returns to the bootloader instead of jumping into a partial app.
+     */
+    uf2_board_flash_write(BOARD_FLASH_APP_START, &invalid_signature, sizeof(invalid_signature));
+    uf2_board_flash_flush();
+}
+
 
 void uf2_board_flash_read(uint32_t addr, void *buffer, uint32_t len)
 {
@@ -168,4 +187,3 @@ bool uf2_board_enter_bootloader(void)
     }
     return false;
 }
-

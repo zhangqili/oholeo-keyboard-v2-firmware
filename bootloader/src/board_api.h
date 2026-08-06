@@ -141,6 +141,12 @@ void uf2_board_flash_write(uint32_t addr, void const *data, uint32_t len);
 /* Flush/Sync flash contents */
 void uf2_board_flash_flush(void);
 
+/* Discard a pending, not-yet-flashed sector after an interrupted update. */
+void uf2_board_flash_abort(void);
+
+/* Make the application invalid before an update and restore its signature last. */
+void uf2_board_flash_invalidate_app(void);
+
 /* Erase application */
 void uf2_board_flash_erase_app(void);
 
