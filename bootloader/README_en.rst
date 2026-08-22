@@ -66,3 +66,23 @@ Note:
 
 Then connect USB cable to USB port, a USB mass storage device will be found on PC. Then the UF2 container can be drag-n-dropped into the device.
 Once the programming is completed, the application will run immediately.
+
+USB DFU update
+--------------
+
+The bootloader also exposes a standard USB DFU interface alongside the UF2 mass-storage device.
+Use the raw application binary generated with the ``flash_uf2`` linker script; do not use the
+``.uf2`` container with DFU. For example:
+
+.. code-block:: console
+
+   dfu-util -a 0 -D build/output/oholeo-keyboard-v2.bin
+
+The bootloader invalidates the current application before programming and restores its boot
+signature only after the full DFU transfer succeeds. An interrupted update therefore returns to
+bootloader mode instead of attempting to boot a partial image.
+
+The DFU ``Firmware Upload`` operation is also supported and reads the application partition
+back to the host. It exports the whole partition because the UF2 application format does not
+record its exact image length; the tail is normally erased (``0xff``) padding. Treat the result
+as a raw backup image and keep it private because it contains the installed firmware.

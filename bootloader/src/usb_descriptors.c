@@ -39,12 +39,14 @@ enum {
     STRID_SERIAL,
     STRID_MSC,
     STRID_HID,
+    STRID_DFU,
     STRID_VENDOR,
 };
 
 enum {
     ITF_NUM_MSC,
     ITF_NUM_HID,
+    ITF_NUM_DFU,
 
 #if CFG_TUD_VENDOR
     ITF_NUM_VENDOR, /* webUSB */
@@ -105,7 +107,8 @@ uint8_t const *tud_hid_descriptor_report_cb(uint8_t itf)
 /* Configuration Descriptor */
 /*--------------------------------------------------------------------+ */
 
-#define CONFIG_TOTAL_LEN  (TUD_CONFIG_DESC_LEN + TUD_MSC_DESC_LEN + TUD_HID_INOUT_DESC_LEN + CFG_TUD_VENDOR*TUD_VENDOR_DESC_LEN)
+#define CONFIG_TOTAL_LEN  (TUD_CONFIG_DESC_LEN + TUD_MSC_DESC_LEN + TUD_HID_INOUT_DESC_LEN \
+                           + TUD_DFU_DESC_LEN(1) + CFG_TUD_VENDOR*TUD_VENDOR_DESC_LEN)
 
 #define EPNUM_MSC_OUT     0x01
 #define EPNUM_MSC_IN      0x81
@@ -126,6 +129,10 @@ uint8_t const desc_fs_configuration[] = {
     /* Interface number, string index, protocol, report descriptor len, EP In & Out address, size & polling interval */
     TUD_HID_INOUT_DESCRIPTOR(ITF_NUM_HID, STRID_HID, HID_ITF_PROTOCOL_NONE, sizeof(desc_hid_report), EPNUM_HID_OUT, EPNUM_HID_IN, 64, 10),
 
+    /* Standard USB DFU mode. It has no data endpoints and shares the existing
+     * bootloader flash implementation with the UF2 mass-storage interface. */
+    TUD_DFU_DESCRIPTOR(ITF_NUM_DFU, 1, STRID_DFU, DFU_ATTR_CAN_DOWNLOAD | DFU_ATTR_CAN_UPLOAD, 100, CFG_TUD_DFU_XFER_BUFSIZE),
+
 #if CFG_TUD_VENDOR
     /* Interface number, string index, EP Out & IN address, EP size */
     TUD_VENDOR_DESCRIPTOR(ITF_NUM_VENDOR, STRID_VENDOR, EPNUM_VENDOR_OUT, EPNUM_VENDOR_IN, 64)
@@ -143,6 +150,9 @@ uint8_t const desc_hs_configuration[] = {
 
     /* Interface number, string index, protocol, report descriptor len, EP In & Out address, size & polling interval */
     TUD_HID_INOUT_DESCRIPTOR(ITF_NUM_HID, STRID_HID, HID_ITF_PROTOCOL_NONE, sizeof(desc_hid_report), EPNUM_HID_OUT, EPNUM_HID_IN, 512, 10),
+
+    /* DFU is control-transfer-only and identical at full/high speed. */
+    TUD_DFU_DESCRIPTOR(ITF_NUM_DFU, 1, STRID_DFU, DFU_ATTR_CAN_DOWNLOAD | DFU_ATTR_CAN_UPLOAD, 100, CFG_TUD_DFU_XFER_BUFSIZE),
 
 #if CFG_TUD_VENDOR
     /* Interface number, string index, EP Out & IN address, EP size */
@@ -182,6 +192,7 @@ char const *string_desc_arr[] = {
     desc_str_serial,               /* 3: Serials, use default MAC address */
     "UF2",                         /* 4: MSC Interface */
     "HF2 HID",
+    "DFU Firmware",
     "HF2 WebUSB"
 };
 

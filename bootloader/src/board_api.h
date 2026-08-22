@@ -35,8 +35,8 @@
 #include <string.h>
 #include "board.h"
 
-#define UF2_VOLUME_LABEL "HPMBOOT"
-#define UF2_INDEX_URL "https://www.hpmicro.com"
+#define UF2_VOLUME_LABEL "OHOLEOBOOT"
+#define UF2_INDEX_URL "https://github.com/zhangqili/oholeo-keyboard-v2-firmware"
 #define UF2_PRODUCT_NAME BOARD_NAME
 #define UF2_BOARD_ID BOARD_NAME
 
@@ -48,9 +48,9 @@
 
 #define UF2_AVAILABLE_BOARD_FLASH_SIZE (BOARD_FLASH_SIZE - (BOARD_FLASH_APP_START - BOARD_FLASH_BASE_ADDRESS))
 
-#define USB_VID 0x34b7
-#define USB_PID 0x1001
-#define USB_MANUFACTURER  "HPMicro"
+#define USB_VID 0x0d00
+#define USB_PID 0x0720
+#define USB_MANUFACTURER  "Lzq12345"
 #define USB_PRODUCT       BOARD_NAME
 
 #define UF2_BOOTLOADER_SAMPLE_COUNT 10
@@ -140,6 +140,12 @@ void uf2_board_flash_write(uint32_t addr, void const *data, uint32_t len);
 
 /* Flush/Sync flash contents */
 void uf2_board_flash_flush(void);
+
+/* Discard a pending, not-yet-flashed sector after an interrupted update. */
+void uf2_board_flash_abort(void);
+
+/* Make the application invalid before an update and restore its signature last. */
+void uf2_board_flash_invalidate_app(void);
 
 /* Erase application */
 void uf2_board_flash_erase_app(void);

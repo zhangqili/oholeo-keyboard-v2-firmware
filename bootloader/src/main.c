@@ -35,6 +35,7 @@
 #include <string.h>
 
 #include "board_api.h"
+#include "dfu.h"
 #include "uf2.h"
 #include "tusb.h"
 #include "hpm_pdgo_drv.h"
@@ -83,6 +84,7 @@ int main(void)
     TU_LOG1("Start DFU mode\r\n");
     uf2_board_dfu_init();
     uf2_board_flash_init();
+    dfu_init();
     uf2_init();
 
     /* init device stack on configured roothub port */
@@ -97,6 +99,7 @@ int main(void)
 #if (CFG_TUSB_OS == OPT_OS_NONE)
     while (1) {
         tud_task();
+        dfu_task();
     }
 #endif
 }

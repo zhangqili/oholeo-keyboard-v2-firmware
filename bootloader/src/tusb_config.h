@@ -103,12 +103,18 @@
 #define CFG_TUD_HID              1
 #define CFG_TUD_MIDI             0
 #define CFG_TUD_VENDOR           0
+#define CFG_TUD_DFU              1
 
     /* MSC Buffer size of Device Mass storage */
 #define CFG_TUD_MSC_EP_BUFSIZE      4096
 
     /* HID buffer size Should be sufficient to hold ID (if any) + Data */
 #define CFG_TUD_HID_EP_BUFSIZE      64
+
+    /* DFU download transfer size. 1024 bytes divides the 4 KiB NOR sector
+     * used by the board flash writer, so no transfer crosses a sector boundary.
+     */
+#define CFG_TUD_DFU_XFER_BUFSIZE     1024
 
 #ifdef __cplusplus
 }
