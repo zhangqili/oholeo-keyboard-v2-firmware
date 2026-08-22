@@ -62,72 +62,10 @@ ATTR_PLACE_AT_NONCACHEABLE_WITH_ALIGNMENT(ADC_SOC_DMA_ADDR_ALIGNMENT) uint32_t a
 
 uint8_t seq_adc_channel0[] = {1,2,3,4,5};
 uint8_t seq_adc_channel1[] = {6,7,11,14,15};
-uint8_t current_cycle_bit;
 
 __IO uint8_t seq_complete_flag;
 __IO uint8_t trig_complete_flag;
 __IO uint32_t res_out_of_thr_flag;
-
-#ifndef ADC_SOC_NO_HW_TRIG_SRC
-
-#if defined(HPMSOC_HAS_HPMSDK_PWM)
-void init_trigger_source(PWM_Type *ptr)
-{
-    pwm_cmp_config_t pwm_cmp_cfg;
-    pwm_output_channel_t pwm_output_ch_cfg;
-
-    int mot_clock_freq;
-
-    mot_clock_freq = clock_get_frequency(BOARD_APP_ADC16_HW_TRIG_SRC_CLK_NAME);
-
-    /* reload value */
-    pwm_set_reload(ptr, 0, (mot_clock_freq/APP_ADC16_TRIG_SRC_FREQUENCY) - 1);
-
-    /* Set a comparator */
-    memset(&pwm_cmp_cfg, 0x00, sizeof(pwm_cmp_config_t));
-    pwm_cmp_cfg.enable_ex_cmp  = false;
-    pwm_cmp_cfg.mode           = pwm_cmp_mode_output_compare;
-    pwm_cmp_cfg.update_trigger = pwm_shadow_register_update_on_shlk;
-
-    /* Select comp8 and trigger at the middle of a pwm cycle */
-    pwm_cmp_cfg.cmp = ((mot_clock_freq/APP_ADC16_TRIG_SRC_FREQUENCY) - 1) >> 1;
-    pwm_config_cmp(ptr, APP_ADC16_HW_TRIG_SRC_PWM_REFCH_A, &pwm_cmp_cfg);
-
-    /* Issue a shadow lock */
-    pwm_issue_shadow_register_lock_event(APP_ADC16_HW_TRIG_SRC);
-
-    /* Set comparator channel to generate a trigger signal */
-    pwm_output_ch_cfg.cmp_start_index = APP_ADC16_HW_TRIG_SRC_PWM_REFCH_A;   /* start channel */
-    pwm_output_ch_cfg.cmp_end_index   = APP_ADC16_HW_TRIG_SRC_PWM_REFCH_A;   /* end channel */
-    pwm_output_ch_cfg.invert_output   = false;
-    pwm_config_output_channel(ptr, APP_ADC16_HW_TRIG_SRC_PWM_REFCH_A, &pwm_output_ch_cfg);
-
-    /* Start the comparator counter */
-    pwm_start_counter(ptr);
-}
-
-void stop_trigger_source(PWM_Type *ptr)
-{
-    pwm_stop_counter(ptr);
-}
-
-void start_trigger_source(PWM_Type *ptr)
-{
-    pwm_start_counter(ptr);
-}
-#endif
-
-void init_trigger_mux(TRGM_Type *ptr, uint8_t input, uint8_t output)
-{
-    trgm_output_t trgm_output_cfg;
-
-    trgm_output_cfg.invert = false;
-    trgm_output_cfg.type = trgm_output_same_as_input;
-
-    trgm_output_cfg.input  = input;
-    trgm_output_config(ptr, output, &trgm_output_cfg);
-}
-#endif
 
 hpm_stat_t init_common_config(void)
 {
@@ -328,48 +266,6 @@ void init_sequence_config(void)
     }
 }
 
-bool abort_handler(uint8_t conv_mode)
-{
-    if (console_try_receive_byte() == ' ') {
-
-    #if !defined(ADC_SOC_NO_HW_TRIG_SRC) && !defined(__ADC16_USE_SW_TRIG)
-        if (conv_mode == adc16_conv_mode_sequence) {
-            adc16_seq_disable_hw_trigger(HPM_ADC0);
-        }
-
-        stop_trigger_source(APP_ADC16_HW_TRIG_SRC);
-    #else
-        (void) conv_mode;
-    #endif
-        current_cycle_bit = 0;
-
-        return true;
-    } else {
-        return false;
-    }
-}
-
-bool abort_handler1(uint8_t conv_mode)
-{
-    if (console_try_receive_byte() == ' ') {
-
-    #if !defined(ADC_SOC_NO_HW_TRIG_SRC) && !defined(__ADC16_USE_SW_TRIG)
-        if (conv_mode == adc16_conv_mode_sequence) {
-            adc16_seq_disable_hw_trigger(HPM_ADC1);
-        }
-
-        stop_trigger_source(APP_ADC16_HW_TRIG_SRC);
-    #else
-        (void) conv_mode;
-    #endif
-        current_cycle_bit = 0;
-
-        return true;
-    } else {
-        return false;
-    }
-}
-
 int adc_init(void)
 {
     //printf("This is an ADC16 demo:\n");
@@ -512,7 +408,11 @@ void update_ringbuf()
             ringbuf_push(&g_adc_ringbufs[40 + j * 8 + g_analog_active_channel], sum_values[5 + j] / sample_counts[5 + j]);
     }
     extern uint32_t debug;
-    debug+=sample_counts[1];
+    if (g_analog_active_channel == 1)
+    {
+        debug+=sample_counts[1];
+    }
+    
 
     g_analog_active_channel = next_channel;
     // 4. 准备下一轮采样 (关键步骤：复位 -> 切换 -> 重启)

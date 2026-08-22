@@ -61,7 +61,7 @@ static void ring_buf_timer_config(void)
     gptmr_channel_get_default_config(RINGBUF_TICK_GPTMR, &config);
     printf("ring_buf_gptmr_freq%ld\n", gptmr_freq);
 
-    config.reload = gptmr_freq / 87500 - 1;
+    config.reload = gptmr_freq / 96000 - 1;
     config.enable_opmode = true;
     gptmr_channel_config(RINGBUF_TICK_GPTMR, RINGBUF_TICK_GPTMR_CH, &config, false);
     gptmr_channel_enable_opmode(RINGBUF_TICK_GPTMR, RINGBUF_TICK_GPTMR_CH);
