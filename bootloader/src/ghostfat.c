@@ -288,15 +288,25 @@ void uf2_init(void)
 /*------------------------------------------------------------------*/
 /* Read CURRENT.UF2
  *------------------------------------------------------------------*/
-void padded_memcpy (char *dst, char const *src, int len)
+static void set_dir_entry_name(DirEntry *entry, char const src[11])
 {
-    for (int i = 0; i < len; ++i) {
-        if (*src) {
-            *dst = *src++;
-        } else {
-            *dst = ' ';
+    bool pad_remaining = false;
+
+    /* A DOS 8.3 name is split into two distinct structure members. Write
+     * them individually instead of relying on their packed layout. */
+    for (uint8_t i = 0; i < 11; ++i) {
+        char ch = pad_remaining ? ' ' : src[i];
+
+        if (ch == '\0') {
+            ch = ' ';
+            pad_remaining = true;
         }
-        dst++;
+
+        if (i < sizeof(entry->name)) {
+            entry->name[i] = ch;
+        } else {
+            entry->ext[i - sizeof(entry->name)] = ch;
+        }
     }
 }
 
@@ -374,7 +384,7 @@ void uf2_read_block (uint32_t block_no, uint8_t *data)
 
         if (sectionRelativeSector == 0) {
             /* volume label is first directory entry */
-            padded_memcpy(d->name, (char const *) BootBlock.VolumeLabel, 11);
+            set_dir_entry_name(d, (char const *) BootBlock.VolumeLabel);
             d->attrs = 0x28;
             d++;
             remainingEntries--;
@@ -392,7 +402,7 @@ void uf2_read_block (uint32_t block_no, uint8_t *data)
             uint32_t const startCluster = info[fileIndex].cluster_start;
 
             FileContent_t const *inf = &info[fileIndex];
-            padded_memcpy(d->name, inf->name, 11);
+            set_dir_entry_name(d, inf->name);
             d->createTimeFine   = COMPILE_SECONDS_INT % 2 * 100;
             d->createTime       = COMPILE_DOS_TIME;
             d->createDate       = COMPILE_DOS_DATE;
@@ -432,9 +442,13 @@ void uf2_read_block (uint32_t block_no, uint8_t *data)
             }
         } else {
             /* CURRENT.UF2: generate data on-the-fly */
-            uint32_t addr = BOARD_FLASH_APP_START + (fileRelativeSector * UF2_FIRMWARE_BYTES_PER_SECTOR);
-            /* TODO abstract this out */
-            if (addr < _flash_size) {
+            uint32_t const app_offset = fileRelativeSector * UF2_FIRMWARE_BYTES_PER_SECTOR;
+
+            /* _flash_size is the application-partition length, whereas addr
+             * is an absolute XIP address. Compare values in the same address
+             * space before emitting a UF2 block. */
+            if (app_offset < _flash_size) {
+                uint32_t const addr = BOARD_FLASH_APP_START + app_offset;
                 UF2_Block *bl = (void *) data;
                 bl->magicStart0 = UF2_MAGIC_START0;
                 bl->magicStart1 = UF2_MAGIC_START1;

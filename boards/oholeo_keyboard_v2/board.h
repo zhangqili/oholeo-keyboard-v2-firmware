@@ -18,7 +18,7 @@
 #include "hpm_debug_console.h"
 #endif
 
-#define BOARD_NAME          "hpm5300evk"
+#define BOARD_NAME          "Oholeo Keyboard V2"
 #define BOARD_UF2_SIGNATURE (0x0A4D5048UL)
 
 /* ACMP desction */

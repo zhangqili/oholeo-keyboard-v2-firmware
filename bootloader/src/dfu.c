@@ -56,7 +56,7 @@ uint32_t tud_dfu_get_timeout_cb(uint8_t alt, uint8_t state)
     (void) alt;
 
     /* NOR erase/program operations are synchronous in this bootloader. */
-    return (state == DFU_MANIFEST) ? 100U : 50U;
+    return (state == DFU_MANIFEST) ? 0U : 0U;
 }
 
 void tud_dfu_download_cb(uint8_t alt, uint16_t block_num, uint8_t const *data, uint16_t length)
@@ -136,6 +136,32 @@ void tud_dfu_manifest_cb(uint8_t alt)
     indicator_set(STATE_WRITING_FINISHED);
     tud_dfu_finish_flashing(DFU_STATUS_OK);
     s_reset_pending = true;
+}
+
+uint16_t tud_dfu_upload_cb(uint8_t alt, uint16_t block_num, uint8_t *data, uint16_t length)
+{
+    uint32_t const offset = (uint32_t) block_num * CFG_TUD_DFU_XFER_BUFSIZE;
+    uint32_t const image_size = uf2_board_flash_size();
+    uint32_t bytes_to_read;
+
+    if ((alt != 0U) || (offset >= image_size)) {
+        /* A zero-length response terminates the host's firmware upload. */
+        return 0;
+    }
+
+    bytes_to_read = image_size - offset;
+    if (bytes_to_read > length) {
+        bytes_to_read = length;
+    }
+
+    /*
+     * The current UF2 application format has no persistent image-length
+     * field, so expose the complete application partition. The bytes after
+     * the application are normally erased (0xff) and retaining them makes
+     * the uploaded binary directly suitable for a full-partition restore.
+     */
+    uf2_board_flash_read(BOARD_FLASH_APP_START + offset, data, bytes_to_read);
+    return (uint16_t) bytes_to_read;
 }
 
 void tud_dfu_abort_cb(uint8_t alt)

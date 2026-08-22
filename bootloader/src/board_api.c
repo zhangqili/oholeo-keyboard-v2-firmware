@@ -9,6 +9,8 @@
 #include "hpm_ppor_drv.h"
 #include "hpm_l1c_drv.h"
 #include "hpm_gpio_drv.h"
+#include "hpm_otp_drv.h"
+#include "hpm_soc_feature.h"
 
 
 void uf2_board_init(void)
@@ -123,7 +125,17 @@ void uf2_board_flash_invalidate_app(void)
 
 void uf2_board_flash_read(uint32_t addr, void *buffer, uint32_t len)
 {
-    rom_xpi_nor_read(BOARD_APP_XPI_NOR_XPI_BASE, xpi_xfer_channel_auto, &s_xpi_nor_config, buffer, addr, len);
+    uint32_t const flash_offset = addr - BOARD_FLASH_BASE_ADDRESS;
+
+    /* ROM XPI APIs use a byte offset in the NOR device, not its XIP address. */
+    if ((addr < BOARD_FLASH_BASE_ADDRESS)
+        || (flash_offset > BOARD_FLASH_SIZE)
+        || (len > (BOARD_FLASH_SIZE - flash_offset))
+        || (rom_xpi_nor_read(BOARD_APP_XPI_NOR_XPI_BASE, xpi_xfer_channel_auto,
+                             &s_xpi_nor_config, buffer, flash_offset, len) != status_success)) {
+        /* This API cannot return an error to its callers; never expose stale RAM. */
+        memset(buffer, 0xff, len);
+    }
 }
 
 uint32_t uf2_board_flash_size(void)
@@ -165,11 +177,37 @@ void uf2_board_timer_stop(void)
 {
 }
 
+#define HPM_UUID_WORD_SIZE  4U
+#define HPM_UUID_WORD_COUNT (OTP_SOC_UUID_LEN / HPM_UUID_WORD_SIZE)
+
+#if (OTP_SOC_UUID_LEN % HPM_UUID_WORD_SIZE) != 0
+#error OTP_SOC_UUID_LEN must be word aligned
+#endif
+
 uint8_t uf2_board_usb_get_serial(uint8_t *id)
 {
-    const uint8_t s[] = "HPMicro Semi SH";
-    memcpy(id, s, sizeof(s));
-    return 16;
+    size_t id_index = 0;
+
+    if (id == NULL) {
+        return 0;
+    }
+
+    /* Match the main application serial exactly: read the OTP UUID words and
+     * expand each word little-endian before usb_descriptors.c converts it to
+     * its hexadecimal USB string representation. */
+    for (size_t word_index = 0; word_index < HPM_UUID_WORD_COUNT; word_index++) {
+        const uint32_t word = otp_read_from_shadow(OTP_SOC_UUID_IDX + word_index);
+
+        for (size_t byte_index = 0; byte_index < HPM_UUID_WORD_SIZE; byte_index++) {
+            if (id_index >= 16U) {
+                return (uint8_t)id_index;
+            }
+
+            id[id_index++] = (uint8_t)((word >> (byte_index * 8U)) & 0xFFU);
+        }
+    }
+
+    return (uint8_t)id_index;
 }
 
 bool uf2_board_enter_bootloader(void)

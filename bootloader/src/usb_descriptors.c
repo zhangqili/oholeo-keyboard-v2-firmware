@@ -131,7 +131,7 @@ uint8_t const desc_fs_configuration[] = {
 
     /* Standard USB DFU mode. It has no data endpoints and shares the existing
      * bootloader flash implementation with the UF2 mass-storage interface. */
-    TUD_DFU_DESCRIPTOR(ITF_NUM_DFU, 1, STRID_DFU, DFU_ATTR_CAN_DOWNLOAD, 100, CFG_TUD_DFU_XFER_BUFSIZE),
+    TUD_DFU_DESCRIPTOR(ITF_NUM_DFU, 1, STRID_DFU, DFU_ATTR_CAN_DOWNLOAD | DFU_ATTR_CAN_UPLOAD, 100, CFG_TUD_DFU_XFER_BUFSIZE),
 
 #if CFG_TUD_VENDOR
     /* Interface number, string index, EP Out & IN address, EP size */
@@ -152,7 +152,7 @@ uint8_t const desc_hs_configuration[] = {
     TUD_HID_INOUT_DESCRIPTOR(ITF_NUM_HID, STRID_HID, HID_ITF_PROTOCOL_NONE, sizeof(desc_hid_report), EPNUM_HID_OUT, EPNUM_HID_IN, 512, 10),
 
     /* DFU is control-transfer-only and identical at full/high speed. */
-    TUD_DFU_DESCRIPTOR(ITF_NUM_DFU, 1, STRID_DFU, DFU_ATTR_CAN_DOWNLOAD, 100, CFG_TUD_DFU_XFER_BUFSIZE),
+    TUD_DFU_DESCRIPTOR(ITF_NUM_DFU, 1, STRID_DFU, DFU_ATTR_CAN_DOWNLOAD | DFU_ATTR_CAN_UPLOAD, 100, CFG_TUD_DFU_XFER_BUFSIZE),
 
 #if CFG_TUD_VENDOR
     /* Interface number, string index, EP Out & IN address, EP size */
