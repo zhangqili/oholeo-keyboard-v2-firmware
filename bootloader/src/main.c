@@ -43,8 +43,7 @@
 /*--------------------------------------------------------------------*/
 /* MACRO CONSTANT TYPEDEF PROTYPES */
 /*--------------------------------------------------------------------*/
-uint8_t RGB_USB_UNMOUNTED[] = { 0xff, 0x00, 0x00 }; /* Red */
-uint8_t RGB_USB_MOUNTED[] = { 0x00, 0xff, 0x00 };   /* Green */
+uint8_t RGB_WAITING_FOR_FIRMWARE[] = { 0x0f, 0x00, 0x00 }; /* Red */
 uint8_t RGB_WRITING[] = { 0xcc, 0x66, 0x00 };
 uint8_t RGB_ENTER_BOOTLOADER[] = { 0x80, 0x00, 0xff }; /* Purple */
 uint8_t RGB_UNKNOWN[] = { 0x00, 0x00, 0x88 };          /* for debug */
@@ -83,6 +82,7 @@ int main(void)
 
     TU_LOG1("Start DFU mode\r\n");
     uf2_board_dfu_init();
+    indicator_set(STATE_USB_UNPLUGGED);
     uf2_board_flash_init();
     dfu_init();
     uf2_init();
@@ -93,8 +93,6 @@ int main(void)
         .speed = TUSB_SPEED_AUTO,
     };
     tusb_init(BOARD_TUD_RHPORT, &dev_init);
-
-    indicator_set(STATE_USB_UNPLUGGED);
 
 #if (CFG_TUSB_OS == OPT_OS_NONE)
     while (1) {
@@ -120,7 +118,8 @@ static bool check_dfu_mode(void)
     if (!uf2_board_app_valid()) {
         return true;
     }
-    return false;
+
+    return uf2_board_boot_key_requests_dfu();
 }
 
 /*--------------------------------------------------------------------*/
@@ -183,19 +182,20 @@ void indicator_set(uint32_t state)
     switch (state) {
     case STATE_USB_UNPLUGGED:
         uf2_board_timer_start(1);
-        memcpy(_indicator_rgb, RGB_USB_UNMOUNTED, 3);
+        memcpy(_indicator_rgb, RGB_WAITING_FOR_FIRMWARE, 3);
         uf2_board_pwm_rgb_write(_indicator_rgb);
         break;
 
     case STATE_USB_PLUGGED:
         uf2_board_timer_start(5);
-        memcpy(_indicator_rgb, RGB_USB_MOUNTED, 3);
+        memcpy(_indicator_rgb, RGB_WAITING_FOR_FIRMWARE, 3);
         uf2_board_pwm_rgb_write(_indicator_rgb);
         break;
 
     case STATE_WRITING_STARTED:
         uf2_board_timer_start(25);
         memcpy(_indicator_rgb, RGB_WRITING, 3);
+        uf2_board_pwm_rgb_write(_indicator_rgb);
         break;
 
     case STATE_WRITING_FINISHED:

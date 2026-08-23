@@ -9,8 +9,21 @@
 #include "hpm_ppor_drv.h"
 #include "hpm_l1c_drv.h"
 #include "hpm_gpio_drv.h"
+#include "hpm_gpiom_drv.h"
+#include "hpm_adc16_drv.h"
 #include "hpm_otp_drv.h"
 #include "hpm_soc_feature.h"
+#include "ws2812.h"
+
+#define BOOT_KEY_MUX_CHANNEL            6U
+#define BOOT_KEY_ADC                    HPM_ADC1
+#define BOOT_KEY_ADC_CHANNEL            15U
+#define BOOT_KEY_ADC_SAMPLE_CYCLE       15U
+#define BOOT_KEY_MUX_SETTLE_US          100U
+#define BOOT_KEY_DISCARD_SAMPLE_COUNT   3U
+#define BOOT_KEY_SAMPLE_COUNT           8U
+#define BOOT_KEY_LOW_THRESHOLD          8192U
+#define BOOT_KEY_HIGH_THRESHOLD         (65536U - BOOT_KEY_LOW_THRESHOLD)
 
 
 void uf2_board_init(void)
@@ -43,6 +56,7 @@ void uf2_board_dfu_complete(void)
 
 void uf2_board_dfu_init(void)
 {
+    ws2812_init();
 }
 
 static xpi_nor_config_t s_xpi_nor_config;
@@ -163,6 +177,18 @@ void uf2_board_flash_write(uint32_t addr, void const *src, uint32_t len)
 
 void uf2_board_pwm_rgb_write(uint8_t *rgb)
 {
+    if (rgb == NULL) {
+        return;
+    }
+
+    for (uint16_t index = 0; index < WS2812_LED_NUM; index++) {
+        ws2812_set(index, rgb[0], rgb[1], rgb[2]);
+    }
+
+    /* State transitions are infrequent. If the previous frame is still being
+     * shifted out, wait for it and then submit the complete new frame. */
+    while (ws2812_flush() != 0) {
+    }
 }
 
 void uf2_board_pwm_led_write(uint8_t value)
@@ -224,4 +250,81 @@ bool uf2_board_enter_bootloader(void)
         return true;
     }
     return false;
+}
+
+bool uf2_board_boot_key_requests_dfu(void)
+{
+    adc16_config_t adc_config;
+    adc16_channel_config_t channel_config;
+    uint32_t sample_sum = 0;
+    uint32_t sample_average;
+    uint16_t sample;
+
+    /* Key 0 maps to g_analog_map index 78 in the application, which is
+     * ADC1 sequence slot 4 (physical channel 15) on mux channel 6. */
+    for (uint8_t pin = 0; pin < 3U; pin++) {
+        gpiom_set_pin_controller(HPM_GPIOM, GPIOM_ASSIGN_GPIOY, pin, gpiom_core0_fast);
+        gpio_set_pin_output(HPM_FGPIO, GPIO_OE_GPIOY, pin);
+    }
+    gpio_write_pin(HPM_FGPIO, GPIO_DO_GPIOY, 0, BOOT_KEY_MUX_CHANNEL & 0x01U);
+    gpio_write_pin(HPM_FGPIO, GPIO_DO_GPIOY, 1, BOOT_KEY_MUX_CHANNEL & 0x02U);
+    gpio_write_pin(HPM_FGPIO, GPIO_DO_GPIOY, 2, BOOT_KEY_MUX_CHANNEL & 0x04U);
+
+    board_init_adc16_pins();
+    board_init_adc_clock(BOOT_KEY_ADC, true);
+
+    adc16_get_default_config(&adc_config);
+    adc_config.res = adc16_res_16_bits;
+    adc_config.conv_mode = adc16_conv_mode_oneshot;
+    adc_config.adc_clk_div = adc16_clock_divider_4;
+    adc_config.sel_sync_ahb = true;
+
+    if (adc16_init(BOOT_KEY_ADC, &adc_config) != status_success) {
+        printf("Boot key ADC initialization failed; staying in DFU mode\r\n");
+        return true;
+    }
+
+    adc16_get_channel_default_config(&channel_config);
+    channel_config.ch = BOOT_KEY_ADC_CHANNEL;
+    channel_config.sample_cycle = BOOT_KEY_ADC_SAMPLE_CYCLE;
+    if (adc16_init_channel(BOOT_KEY_ADC, &channel_config) != status_success) {
+        printf("Boot key ADC channel initialization failed; staying in DFU mode\r\n");
+        adc16_deinit(BOOT_KEY_ADC);
+        return true;
+    }
+
+#if defined(ADC_SOC_BUSMODE_ENABLE_CTRL_SUPPORT) && ADC_SOC_BUSMODE_ENABLE_CTRL_SUPPORT
+    adc16_enable_oneshot_mode(BOOT_KEY_ADC);
+#endif
+    adc16_set_blocking_read(BOOT_KEY_ADC);
+    board_delay_us(BOOT_KEY_MUX_SETTLE_US);
+
+    for (uint32_t index = 0;
+         index < (BOOT_KEY_DISCARD_SAMPLE_COUNT + BOOT_KEY_SAMPLE_COUNT);
+         index++) {
+        if (adc16_get_oneshot_result(BOOT_KEY_ADC, BOOT_KEY_ADC_CHANNEL, &sample)
+            != status_success) {
+            printf("Boot key ADC sampling failed; staying in DFU mode\r\n");
+#if defined(ADC_SOC_BUSMODE_ENABLE_CTRL_SUPPORT) && ADC_SOC_BUSMODE_ENABLE_CTRL_SUPPORT
+            adc16_disable_oneshot_mode(BOOT_KEY_ADC);
+#endif
+            adc16_deinit(BOOT_KEY_ADC);
+            return true;
+        }
+
+        if (index >= BOOT_KEY_DISCARD_SAMPLE_COUNT) {
+            sample_sum += sample;
+        }
+    }
+
+#if defined(ADC_SOC_BUSMODE_ENABLE_CTRL_SUPPORT) && ADC_SOC_BUSMODE_ENABLE_CTRL_SUPPORT
+    adc16_disable_oneshot_mode(BOOT_KEY_ADC);
+#endif
+    adc16_deinit(BOOT_KEY_ADC);
+
+    sample_average = sample_sum / BOOT_KEY_SAMPLE_COUNT;
+    printf("Boot key ADC average: %lu\r\n", (unsigned long) sample_average);
+
+    return (sample_average < BOOT_KEY_LOW_THRESHOLD)
+        || (sample_average > BOOT_KEY_HIGH_THRESHOLD);
 }

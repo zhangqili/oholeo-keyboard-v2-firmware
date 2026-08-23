@@ -99,6 +99,7 @@ void tud_dfu_download_cb(uint8_t alt, uint16_t block_num, uint8_t const *data, u
 
         s_download_started = true;
         s_signature_valid = true;
+        indicator_set(STATE_WRITING_STARTED);
         uf2_board_flash_invalidate_app();
 
         /* Keep the first word invalid until manifest succeeds. */

@@ -67,12 +67,24 @@ Note:
 Then connect USB cable to USB port, a USB mass storage device will be found on PC. Then the UF2 container can be drag-n-dropped into the device.
 Once the programming is completed, the application will run immediately.
 
+Before jumping to a valid application, the bootloader takes eight valid samples of key 0 through
+multiplexer channel 6 and ADC1 channel 15. It stays in firmware-update mode when the average is
+below ``8192`` or above ``57344``, or when ADC initialization or sampling fails. While waiting for
+firmware, all 69 LEDs show red at brightness ``100`` whether USB is connected or not; they change
+to orange once programming starts. A normal application boot does not initialize or refresh the
+LED strip.
+
 USB DFU update
 --------------
 
 The bootloader also exposes a standard USB DFU interface alongside the UF2 mass-storage device.
 Use the raw application binary generated with the ``flash_uf2`` linker script; do not use the
 ``.uf2`` container with DFU. For example:
+
+On Windows 10/11, the bootloader uses Microsoft OS 2.0 descriptors to advertise only the DFU
+interface as WinUSB-compatible. Windows loads its inbox ``winusb.sys`` driver automatically on
+first connection, without a custom INF or Zadig. The UF2 mass-storage and HID interfaces continue
+to use their respective inbox class drivers.
 
 .. code-block:: console
 

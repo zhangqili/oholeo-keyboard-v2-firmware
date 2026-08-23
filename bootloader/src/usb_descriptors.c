@@ -61,7 +61,7 @@ enum {
 tusb_desc_device_t const desc_device = {
     .bLength            = sizeof(tusb_desc_device_t),
     .bDescriptorType    = TUSB_DESC_DEVICE,
-    .bcdUSB             = 0x0200,
+    .bcdUSB             = 0x0210,
     .bDeviceClass       = 0x00,
     .bDeviceSubClass    = 0x00,
     .bDeviceProtocol    = 0x00,
@@ -69,7 +69,7 @@ tusb_desc_device_t const desc_device = {
 
     .idVendor           = USB_VID,
     .idProduct          = USB_PID,
-    .bcdDevice          = 0x0100,
+    .bcdDevice          = 0x0101,
 
     .iManufacturer      = STRID_MANUFACTURER,
     .iProduct           = STRID_PRODUCT,
@@ -83,6 +83,116 @@ tusb_desc_device_t const desc_device = {
 uint8_t const *tud_descriptor_device_cb(void)
 {
     return (uint8_t const *) &desc_device;
+}
+
+/*--------------------------------------------------------------------+ */
+/* Microsoft OS 2.0 Descriptors */
+/*--------------------------------------------------------------------+ */
+
+#define MS_OS_20_VENDOR_REQUEST                  0x20
+#define MS_OS_20_DESCRIPTOR_INDEX                0x0007
+
+#define BOS_TOTAL_LEN                            (TUD_BOS_DESC_LEN + TUD_BOS_MICROSOFT_OS_DESC_LEN)
+
+#define MS_OS_20_SET_HEADER_LEN                   10
+#define MS_OS_20_CONFIG_SUBSET_HEADER_LEN          8
+#define MS_OS_20_FUNCTION_SUBSET_HEADER_LEN        8
+#define MS_OS_20_COMPATIBLE_ID_DESC_LEN           20
+#define MS_OS_20_REG_PROPERTY_DESC_LEN           132
+#define MS_OS_20_FUNCTION_SUBSET_LEN              (MS_OS_20_FUNCTION_SUBSET_HEADER_LEN \
+                                                    + MS_OS_20_COMPATIBLE_ID_DESC_LEN \
+                                                    + MS_OS_20_REG_PROPERTY_DESC_LEN)
+#define MS_OS_20_CONFIG_SUBSET_LEN                (MS_OS_20_CONFIG_SUBSET_HEADER_LEN \
+                                                    + MS_OS_20_FUNCTION_SUBSET_LEN)
+#define MS_OS_20_DESC_LEN                         (MS_OS_20_SET_HEADER_LEN \
+                                                    + MS_OS_20_CONFIG_SUBSET_LEN)
+
+#define MS_OS_20_PROPERTY_DATA_TYPE_REG_MULTI_SZ  0x0007
+
+uint8_t const desc_bos[] = {
+    TUD_BOS_DESCRIPTOR(BOS_TOTAL_LEN, 1),
+    TUD_BOS_MS_OS_20_DESCRIPTOR(MS_OS_20_DESC_LEN, MS_OS_20_VENDOR_REQUEST)
+};
+
+TU_VERIFY_STATIC(sizeof(desc_bos) == BOS_TOTAL_LEN, "Incorrect BOS descriptor size");
+
+/*
+ * Advertise only the DFU function as WinUSB-compatible. The MSC and HID
+ * interfaces continue to use their Windows inbox class drivers.
+ */
+uint8_t const desc_ms_os_20[] = {
+    /* Microsoft OS 2.0 descriptor set header. */
+    U16_TO_U8S_LE(MS_OS_20_SET_HEADER_LEN),
+    U16_TO_U8S_LE(MS_OS_20_SET_HEADER_DESCRIPTOR),
+    U32_TO_U8S_LE(0x06030000),
+    U16_TO_U8S_LE(MS_OS_20_DESC_LEN),
+
+    /* Configuration subset header for configuration index 0. */
+    U16_TO_U8S_LE(MS_OS_20_CONFIG_SUBSET_HEADER_LEN),
+    U16_TO_U8S_LE(MS_OS_20_SUBSET_HEADER_CONFIGURATION),
+    0x00,
+    0x00,
+    U16_TO_U8S_LE(MS_OS_20_CONFIG_SUBSET_LEN),
+
+    /* Function subset header for the DFU interface. */
+    U16_TO_U8S_LE(MS_OS_20_FUNCTION_SUBSET_HEADER_LEN),
+    U16_TO_U8S_LE(MS_OS_20_SUBSET_HEADER_FUNCTION),
+    ITF_NUM_DFU,
+    0x00,
+    U16_TO_U8S_LE(MS_OS_20_FUNCTION_SUBSET_LEN),
+
+    /* Compatible ID: WINUSB. */
+    U16_TO_U8S_LE(MS_OS_20_COMPATIBLE_ID_DESC_LEN),
+    U16_TO_U8S_LE(MS_OS_20_FEATURE_COMPATBLE_ID),
+    'W', 'I', 'N', 'U', 'S', 'B', 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+    /* DeviceInterfaceGUIDs REG_MULTI_SZ property. */
+    U16_TO_U8S_LE(MS_OS_20_REG_PROPERTY_DESC_LEN),
+    U16_TO_U8S_LE(MS_OS_20_FEATURE_REG_PROPERTY),
+    U16_TO_U8S_LE(MS_OS_20_PROPERTY_DATA_TYPE_REG_MULTI_SZ),
+    U16_TO_U8S_LE(42),
+    'D', 0x00, 'e', 0x00, 'v', 0x00, 'i', 0x00, 'c', 0x00, 'e', 0x00,
+    'I', 0x00, 'n', 0x00, 't', 0x00, 'e', 0x00, 'r', 0x00, 'f', 0x00,
+    'a', 0x00, 'c', 0x00, 'e', 0x00, 'G', 0x00, 'U', 0x00, 'I', 0x00,
+    'D', 0x00, 's', 0x00, 0x00, 0x00,
+    U16_TO_U8S_LE(80),
+    '{', 0x00,
+    '4', 0x00, 'F', 0x00, '7', 0x00, 'F', 0x00, '9', 0x00, '4', 0x00,
+    '1', 0x00, '6', 0x00, '-', 0x00, 'F', 0x00, '1', 0x00, '0', 0x00,
+    '0', 0x00, '-', 0x00, '4', 0x00, 'A', 0x00, '7', 0x00, '9', 0x00,
+    '-', 0x00, 'B', 0x00, 'C', 0x00, '0', 0x00, 'E', 0x00, '-', 0x00,
+    '3', 0x00, 'B', 0x00, '8', 0x00, '6', 0x00, '1', 0x00, '4', 0x00,
+    'A', 0x00, '6', 0x00, '1', 0x00, 'C', 0x00, '6', 0x00, 'E', 0x00,
+    '}', 0x00, 0x00, 0x00, 0x00, 0x00
+};
+
+TU_VERIFY_STATIC(sizeof(desc_ms_os_20) == MS_OS_20_DESC_LEN,
+                 "Incorrect Microsoft OS 2.0 descriptor size");
+
+uint8_t const *tud_descriptor_bos_cb(void)
+{
+    return desc_bos;
+}
+
+bool tud_vendor_control_xfer_cb(uint8_t rhport, uint8_t stage,
+                                tusb_control_request_t const *request)
+{
+    if (stage != CONTROL_STAGE_SETUP) {
+        return true;
+    }
+
+    if ((request->bmRequestType_bit.direction != TUSB_DIR_IN)
+        || (request->bmRequestType_bit.type != TUSB_REQ_TYPE_VENDOR)
+        || (request->bmRequestType_bit.recipient != TUSB_REQ_RCPT_DEVICE)
+        || (request->bRequest != MS_OS_20_VENDOR_REQUEST)
+        || (request->wValue != 0U)
+        || (request->wIndex != MS_OS_20_DESCRIPTOR_INDEX)) {
+        return false;
+    }
+
+    return tud_control_xfer(rhport, request, (void *)(uintptr_t) desc_ms_os_20,
+                            (uint16_t) sizeof(desc_ms_os_20));
 }
 
 /*--------------------------------------------------------------------+ */

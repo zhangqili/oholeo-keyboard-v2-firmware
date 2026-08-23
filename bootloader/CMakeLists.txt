@@ -18,6 +18,8 @@ set(CONFIG_TINYUSB 1)
 set(CONFIG_USB_DEVICE 1)
 set(CONFIG_USB_DEVICE_MSC 1)
 set(CONFIG_USB_DEVICE_HID 1)
+set(CONFIG_HPM_SPI 1)
+set(CONFIG_DMA_MGR 1)
 
 # 查找并配置 HPM SDK
 find_package(hpm-sdk REQUIRED HINTS ${CMAKE_SOURCE_DIR}/../hpm_sdk)
@@ -27,7 +29,10 @@ project(tinyuf2_bootloader)
 
 sdk_compile_definitions(-DUSB_HOST_MCU_CORE=HPM_CORE0)
 
-sdk_inc(src)
+sdk_inc(
+    src
+    ${CMAKE_SOURCE_DIR}/../include
+)
 
 sdk_app_src(src/main.c)
 
@@ -36,6 +41,7 @@ sdk_app_src(src/ghostfat.c)
 sdk_app_src(src/msc.c)
 sdk_app_src(src/usb_descriptors.c)
 sdk_app_src(src/board_api.c)
+sdk_app_src(${CMAKE_SOURCE_DIR}/../src/ws2812.c)
 
 # HPM SDK's TinyUSB integration does not yet register the DFU-mode class.
 # Compile the upstream TinyUSB DFU implementation with this bootloader instead

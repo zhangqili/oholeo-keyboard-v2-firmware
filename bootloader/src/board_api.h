@@ -156,6 +156,9 @@ void uf2_board_self_update(const uint8_t *bootloader_bin, uint32_t bootloader_le
 /* check if user wants to enter bootloader mode */
 bool uf2_board_enter_bootloader(void);
 
+/* Check key 0 through its analog mux/ADC path. ADC errors request DFU mode. */
+bool uf2_board_boot_key_requests_dfu(void);
+
 /* timer handler */
 void uf2_board_timer_handler(void);
 #if defined(__cplusplus)
