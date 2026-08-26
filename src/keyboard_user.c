@@ -965,7 +965,7 @@ void keyboard_delay(uint32_t ms)
 
 void keyboard_reboot()
 {
-    ppor_sw_reset(HPM_PPOR, 1);
+    ppor_sw_reset(HPM_PPOR, 10);
 }
 
 #define SEL_MASK  (A_Pin | B_Pin | C_Pin | D_Pin)
@@ -1002,7 +1002,11 @@ void keyboard_user_event_handler(KeyboardEvent event)
         beep_switch = !beep_switch;
         break;
     case USER_EM:
+        hpm_stat_t keyboard_flash_bootloader_and_reboot(void);
+        keyboard_flash_bootloader_and_reboot();
         em_switch = !em_switch;
+        break;
+    case 0x0F:
         break;
     default:
         beep_switch = false;
@@ -1108,4 +1112,3 @@ size_t usb_descriptor_get_serial_number(char *buffer, size_t buffer_size)
 
     return usb_descriptor_bytes_to_hex_string(buffer, buffer_size, id, sizeof(id));
 }
-

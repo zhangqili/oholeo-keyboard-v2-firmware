@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.13)
 set(CMAKE_COLOR_DIAGNOSTICS ON)
 set(CMAKE_PROJECT_NAME oholeo-keyboard-v2-firmware)
 
+include(ExternalProject)
+
 set(APP_NAME "oholeo-keyboard-v2")
 set(BOARD_SEARCH_PATH ${CMAKE_SOURCE_DIR}/boards)
 set(ENV{HPM_SDK_BASE} ${CMAKE_SOURCE_DIR}/hpm_sdk)
@@ -31,6 +33,43 @@ find_package(hpm-sdk REQUIRED HINTS ${CMAKE_SOURCE_DIR}/hpm_sdk)
 # 定义项目
 project(${CMAKE_PROJECT_NAME})
 
+find_package(Python3 COMPONENTS Interpreter REQUIRED)
+
+set(BOOTLOADER_APP_NAME "oholeo-keyboard-v2-bootloader")
+set(BOOTLOADER_BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR}/bootloader)
+set(BOOTLOADER_BIN
+    ${BOOTLOADER_BUILD_DIR}/output/${BOOTLOADER_APP_NAME}.bin)
+set(BOOTLOADER_EMBEDDED_C
+    ${CMAKE_CURRENT_BINARY_DIR}/generated/bootloader_image.c)
+
+# Build the bootloader in an isolated sub-build and embed the exact resulting
+# binary in the application.  The application can then update the bootloader
+# without depending on a stale, source-tree build artifact.
+ExternalProject_Add(build_bootloader
+    SOURCE_DIR ${CMAKE_SOURCE_DIR}/bootloader
+    BINARY_DIR ${BOOTLOADER_BUILD_DIR}
+    CMAKE_GENERATOR ${CMAKE_GENERATOR}
+    CMAKE_ARGS -DCMAKE_BUILD_TYPE=release
+    BUILD_COMMAND ${CMAKE_COMMAND} --build <BINARY_DIR>
+    BUILD_BYPRODUCTS ${BOOTLOADER_BIN}
+    INSTALL_COMMAND ""
+    TEST_COMMAND ""
+)
+
+add_custom_command(
+    OUTPUT ${BOOTLOADER_EMBEDDED_C}
+    COMMAND ${CMAKE_COMMAND} -E make_directory
+            ${CMAKE_CURRENT_BINARY_DIR}/generated
+    COMMAND ${Python3_EXECUTABLE}
+            ${CMAKE_SOURCE_DIR}/bootloader/embed_bin.py
+            ${BOOTLOADER_BIN}
+            ${BOOTLOADER_EMBEDDED_C}
+    DEPENDS build_bootloader ${CMAKE_SOURCE_DIR}/bootloader/embed_bin.py
+    VERBATIM
+)
+
+add_custom_target(embed_bootloader_image DEPENDS ${BOOTLOADER_EMBEDDED_C})
+
 set(LIBAMP_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include)
 add_subdirectory(lib/libamp)
 target_compile_options(libamp PRIVATE
@@ -51,8 +90,10 @@ file(GLOB_RECURSE MY_SOURCES
     "./src/*.c"
     "./lib/libamp/usb/template/cherryusb/*.c"
     "./lib/libamp/usb/template/cherryusb/mtp/*.c")
+list(APPEND MY_SOURCES ${BOOTLOADER_EMBEDDED_C})
 # 添加源文件
 sdk_app_src(${MY_SOURCES})
+add_dependencies(app embed_bootloader_image)
 
 sdk_inc(
     include
@@ -63,6 +104,11 @@ sdk_inc(
 target_link_libraries(app PRIVATE
     libamp
     m
+)
+# Keep the public platform API and its embedded image in the final firmware
+# even when no current keymap or USB command calls it directly.
+target_link_options(${APP_ELF_NAME} PRIVATE
+    "-Wl,--undefined=keyboard_flash_bootloader_and_reboot"
 )
 add_custom_target(generate_uf2 ALL
     COMMAND python3 ${CMAKE_SOURCE_DIR}/bootloader/uf2conv.py

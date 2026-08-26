@@ -104,6 +104,7 @@
 /* nor flash section */
 #define BOARD_FLASH_BASE_ADDRESS (0x80000000UL) /* Check */
 #define BOARD_FLASH_SIZE         (SIZE_1MB)
+#define BOARD_BOOTLOADER_RESERVED_LENGTH (0x20000UL)
 
 /* i2c section */
 #define BOARD_APP_I2C_BASE     HPM_I2C0
